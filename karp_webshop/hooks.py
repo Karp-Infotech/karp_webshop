@@ -249,4 +249,9 @@ website_route_rules = [
   {'from_route': '/pc/women-sg', 'to_route': 'pc'},
   {'from_route': '/pc/men-sg', 'to_route': 'pc'},
   {'from_route': '/pc/kids-sg', 'to_route': 'pc'},
+  {'from_route': '/pc/ray-ban-eg', 'to_route': 'pc'},
+  {'from_route': '/pc/ray-ban-sg', 'to_route': 'pc'},
+  {'from_route': '/pc/women-screen-glasses', 'to_route': 'pc'},
+  {'from_route': '/pc/men-screen-glasses', 'to_route': 'pc'},
+  {'from_route': '/pc/contact-lenses', 'to_route': 'pc'}
 ]
