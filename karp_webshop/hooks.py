@@ -250,8 +250,3 @@ website_route_rules = [
   {'from_route': '/pc/men-sg', 'to_route': 'pc'},
   {'from_route': '/pc/kids-sg', 'to_route': 'pc'},
 ]
-
-
-app_include_js = [
-    "karp_webshop/public/js/product_ui/karp_view.js"
-]
