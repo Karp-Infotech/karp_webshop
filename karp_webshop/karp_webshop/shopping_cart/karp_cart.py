@@ -668,3 +668,25 @@ def get_customer_type():
 	customer = frappe.db.get_value("Customer", {"customer_name": user}, ["customer_type"], as_dict=True)
 
 	return customer.customer_type 
+
+@frappe.whitelist()
+def get_cart_quotation(doc=None):
+	party = get_party()
+
+	if not doc:
+		quotation = _get_cart_quotation(party)
+		doc = quotation
+		set_cart_count(quotation)
+
+	addresses = get_address_docs(party=party)
+
+	if not doc.customer_address and addresses:
+		update_cart_address("billing", addresses[0].name)
+
+	return {
+		"doc": decorate_quotation_doc(doc),
+		"shipping_addresses": get_shipping_addresses(party),
+		"billing_addresses": get_billing_addresses(party),
+		"shipping_rules": get_applicable_shipping_rules(party),
+		"cart_settings": frappe.get_cached_doc("Webshop Settings"),
+	}
