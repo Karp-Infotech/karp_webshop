@@ -1,0 +1,10 @@
+<script defer src="/assets/karp_webshop/js/karp_shopping_cart.js"></script>
+{% if customer_type|string == "Company" %}
+
+	{% include "templates/includes/cart/cart_b2b.html" %}
+{% else %}
+
+	{% include "templates/includes/cart/cart_b2c.html" %}
+{% endif %}
+
+

@@ -259,3 +259,7 @@ website_route_rules = [
   {'from_route': '/pc/men-screen-glasses', 'to_route': 'pc'},
   {'from_route': '/pc/contact-lenses', 'to_route': 'pc'}
 ]
+
+app_include_js = [
+    "/assets/karp_webshop/js/product_ui/karp_grid.js"
+]

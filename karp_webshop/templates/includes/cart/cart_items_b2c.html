@@ -1,0 +1,86 @@
+{% from "webshop/templates/includes/macros.html" import product_image %}
+
+{% macro item_subtotal(item) %}
+	<div>
+		{{ item.get_formatted('amount') }}
+	</div>
+
+	{% if item.is_free_item %}
+		<div class="text-success mt-4">
+			<span class="free-tag">
+				{{ _('FREE') }}
+			</span>
+		</div>
+	{% else %}
+	{% endif %}
+{% endmacro %}
+
+{% for d in doc.items %}
+	<tr data-name="{{ d.name }}">
+		<td style="width: 60%;">
+			<div class="d-flex">
+				<div class="cart-item-image mr-4">
+					{% if d.website_image %}
+						{{ product_image(d.website_image, alt="d.web_item_name", no_border=True) }}
+					{% else %}
+						<div class = "no-image-cart-item">
+							{{ frappe.utils.get_abbr(d.web_item_name) or "NA" }}
+						</div>
+					{% endif %}
+				</div>
+
+				<div class="d-flex w-100" style="flex-direction: column;">
+					<a href="{{d.route}}">
+						<div class="item-title mb-1 mr-3">
+							{{ d.get("web_item_name") or d.item_name }}
+						</div>
+						<div class="item-subtitle mr-2">
+							{{ d.item_code }}
+						</div>
+					</a>
+					{%- set variant_of = frappe.db.get_value('Item', d.item_code, 'variant_of') %}
+					{% if variant_of %}
+					<span class="item-subtitle mr-2">
+						{{ _('Variant of') }}
+						<a href="{{frappe.db.get_value('Website Item', {'item_code': variant_of}, 'route') or '#'}}">
+							{{ variant_of }}
+						</a>
+					</span>
+					{% endif %}
+
+						<div class="mt-2 notes" >
+							<textarea data-item-code="{{d.item_code}}" class="form-control" style="width: 90%; height: 70px;" rows="2" placeholder="{{ _('Add notes') }}">{{d.additional_notes or ''}}</textarea>
+						</div>
+				</div>
+			</div>
+		</td>
+
+
+		<!-- Subtotal column -->
+		{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
+			<td class="text-right item-subtotal" style="width: 20%;">
+				{{ item_subtotal(d) }}
+			</td>
+		{% endif %}
+
+		<td class="text-right" style="width: 20%;">
+			<div>
+				{% set disabled = 'disabled' if d.is_free_item else '' %}
+				<div>
+					{% if not d.is_free_item %}
+						<div class="remove-cart-item" data-qitem-name="{{ d.name }}">
+							<span>
+								<svg class="icon sm remove-cart-item-logo"
+									width="18" height="18" viewBox="0 0 18 18"
+									xmlns="http://www.w3.org/2000/svg" id="icon-close">
+									<path fill-rule="evenodd" clip-rule="evenodd" d="M4.146 11.217a.5.5 0 1 0 .708.708l3.182-3.182 3.181 3.182a.5.5 0 1 0 .708-.708l-3.182-3.18 3.182-3.182a.5.5 0 1 0-.708-.708l-3.18 3.181-3.183-3.182a.5.5 0 0 0-.708.708l3.182 3.182-3.182 3.181z" stroke-width="0"></path>
+								</svg>
+							</span>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+		</td>
+
+	</tr>
+{% endfor %}
