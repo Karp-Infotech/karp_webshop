@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-05 12:17:49.642780",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "b2c_loyalty_program",
+  "b2b_loyalty_program",
+  "enable_guest_checkout"
+ ],
+ "fields": [
+  {
+   "fieldname": "b2c_loyalty_program",
+   "fieldtype": "Link",
+   "label": "B2C Loyalty Program",
+   "options": "Loyalty Program"
+  },
+  {
+   "fieldname": "b2b_loyalty_program",
+   "fieldtype": "Link",
+   "label": "B2B Loyalty Program",
+   "options": "Loyalty Program"
+  },
+  {
+   "default": "False",
+   "fieldname": "enable_guest_checkout",
+   "fieldtype": "Select",
+   "label": "Enable Guest Checkout",
+   "options": "True\nFalse"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-02-05 12:21:57.638109",
+ "modified_by": "Administrator",
+ "module": "Karp Webshop",
+ "name": "Karp Webshop Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

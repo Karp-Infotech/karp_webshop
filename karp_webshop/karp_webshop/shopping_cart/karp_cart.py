@@ -932,11 +932,12 @@ def apply_coupon_code(applied_code, applied_referral_sales_partner):
 
 
 def get_customer_type():
+	
 	# Get the logged-in user
-	user = frappe.session.user
+	user_email = frappe.session.user
 
     # Fetch the customer linked to this user
-	customer = frappe.db.get_value("Customer", {"customer_name": user}, ["customer_type"], as_dict=True)
+	customer = frappe.get_value("Customer", {"custom_linked_user": user_email}, ["name", "customer_type"], as_dict=True)
 
 	return customer.customer_type 
 

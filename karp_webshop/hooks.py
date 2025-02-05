@@ -263,3 +263,10 @@ website_route_rules = [
 app_include_js = [
     "/assets/karp_webshop/js/product_ui/karp_grid.js"
 ]
+
+
+doc_events = {
+    "User": {
+        "after_insert": "karp_webshop.karp_webshop.api.user_signup.create_customer_for_user"
+    }
+}
