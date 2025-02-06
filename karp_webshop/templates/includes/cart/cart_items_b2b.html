@@ -11,16 +11,12 @@
 				{{ _('FREE') }}
 			</span>
 		</div>
-	{% else %}
-		<span class="item-rate">
-			{{ _('Rate:') }} {{ item.get_formatted('rate') }}
-		</span>
 	{% endif %}
 {% endmacro %}
 
 {% for d in doc.items %}
 	<tr data-name="{{ d.name }}">
-		<td style="width: 60%;">
+		<td style="width: 80%;">
 			<div class="d-flex">
 				<div class="cart-item-image mr-4">
 					{% if d.thumbnail %}
@@ -51,64 +47,56 @@
 					</span>
 					{% endif %}
 
-						<div class="mt-2 notes">
-							<textarea data-item-code="{{d.item_code}}" class="form-control" rows="2" placeholder="{{ _('Add notes') }}">{{d.additional_notes or ''}}</textarea>
-						</div>
+						
 				</div>
+				
+			</div>
+			<div class="mt-2 notes">
+				<textarea style="width: 50%; height: 50px;" data-item-code="{{d.item_code}}" class="form-control" rows="2" placeholder="{{ _('Add notes') }}">{{d.additional_notes or ''}}</textarea>
 			</div>
 		</td>
 
 		
 		<!-- Qty column -->
-		<td class="text-right" style="width: 25%;">
-			<div class="d-flex">
-				{% set disabled = 'disabled' if d.is_free_item else '' %}
-				<div class="input-group number-spinner mt-1 mb-4">
-					<span class="input-group-prepend d-sm-inline-block">
-						<button class="btn cart-btn" data-dir="dwn" {{ disabled }}>
-							{{ '–' if not d.is_free_item else ''}}
-						</button>
-					</span>
+		<td class="text-right" style="width: 20%;">
+			<!-- Subtotal -->
+			{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
+			<div class="text-left item-subtotal" >
+				{{ item_subtotal(d) }}
+			</div>
+			{% endif %}
 
-					<input class="form-control text-center cart-qty" value="{{ d.get_formatted('qty') }}" data-item-code="{{ d.item_code }}"
-						style="max-width: 70px;" {{ disabled }}>
+			{% set disabled = 'disabled' if d.is_free_item else '' %}
+			<div class=" text-center input-group number-spinner mt-1 mb-4 d-flex">
+				<span class="input-group-prepend d-sm-inline-block">
+					<button class="btn cart-btn" data-dir="dwn" {{ disabled }}>
+						{{ '–' if not d.is_free_item else ''}}
+					</button>
+				</span>
 
-					<span class="input-group-append d-sm-inline-block">
-						<button class="btn cart-btn" data-dir="up" {{ disabled }}>
-							{{ '+' if not d.is_free_item else ''}}
-						</button>
-					</span>
-					</div>
+				<input class="form-control text-center cart-qty" value="{{ d.get_formatted('qty') }}" data-item-code="{{ d.item_code }}"
+					style="max-width: 40px;" {{ disabled }}>
 
-				<div>
-					{% if not d.is_free_item %}
-						<div class="remove-cart-item column-sm-view d-flex" data-qitem-name="{{ d.name }}">
-							<span>
-								<svg class="icon sm remove-cart-item-logo"
-									width="18" height="18" viewBox="0 0 18 18"
-									xmlns="http://www.w3.org/2000/svg" id="icon-close">
-									<path fill-rule="evenodd" clip-rule="evenodd" d="M4.146 11.217a.5.5 0 1 0 .708.708l3.182-3.182 3.181 3.182a.5.5 0 1 0 .708-.708l-3.182-3.18 3.182-3.182a.5.5 0 1 0-.708-.708l-3.18 3.181-3.183-3.182a.5.5 0 0 0-.708.708l3.182 3.182-3.182 3.181z" stroke-width="0"></path>
-								</svg>
-							</span>
-						</div>
-					{% endif %}
-					</div>
+				<span class="input-group-append d-sm-inline-block">
+					<button class="btn cart-btn" data-dir="up" {{ disabled }}>
+						{{ '+' if not d.is_free_item else ''}}
+					</button>
+				</span>
 			</div>
 
 
-			<!-- Shown on mobile view, else hidden -->
-			{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
-				<div class="text-right sm-item-subtotal">
-					{{ item_subtotal(d) }}
+			{% if not d.is_free_item %}
+
+			<div class="text-left remove-cart-item" style="float:left !important; width: 60%;" data-qitem-name="{{ d.name }}" >
+				<div class="text-center">
+					{{ "Remove" }}
 				</div>
+			</div>
 			{% endif %}
+
+		
 		</td>
 
-		<!-- Subtotal column -->
-		{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
-			<td class="text-right item-subtotal column-sm-view w-100">
-				{{ item_subtotal(d) }}
-			</td>
-		{% endif %}
+		
 	</tr>
 {% endfor %}

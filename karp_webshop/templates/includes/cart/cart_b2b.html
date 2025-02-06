@@ -16,7 +16,7 @@
 	<div class="row m-0">
 		<!-- Left section -->
 		<div class="col-md-8">
-			<div class="frappe-card p-5 mb-4">
+			<div class="frappe-card mb-4">
 				<div id="cart-error" class="alert alert-danger" style="display: none;"></div>
 				<div class="cart-items-header">
 					{{ _('Items') }}
@@ -25,11 +25,10 @@
 					<thead>
 						<tr>
 							<th class="item-column">{{ _('Item') }}</th>
-							<th width="20%">{{ _('Quantity') }}</th>
+
 							{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
-								<th width="20" class="text-right column-sm-view">{{ _('Subtotal') }}</th>
+								<th width="20" class="text-right column-sm-view"></th>
 							{% endif %}
-							<th width="10%" class="column-sm-view"></th>
 						</tr>
 					</thead>
 					<tbody class="cart-items">
@@ -44,7 +43,7 @@
 				</table>
 
 				<div class="row mt-2">
-					<div class="col-3">
+					<div class="col-9">
 						{% if cart_settings.enable_checkout %}
 							<a class="btn btn-primary-light font-md" href="/orders">
 								{{ _('Past Orders') }}
@@ -55,15 +54,7 @@
 							</a>
 						{% endif %}
 					</div>
-					<div class="col-9">
-						{% if doc.items %}
-						<div class="place-order-container">
-							<a class="btn btn-primary-light mr-2 font-md" href="/all-products">
-								{{ _('Continue Shopping') }}
-							</a>
-						</div>
-						{% endif %}
-					</div>
+					
 				</div>
 			</div>
 
