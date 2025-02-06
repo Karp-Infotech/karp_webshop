@@ -270,3 +270,5 @@ doc_events = {
         "after_insert": "karp_webshop.karp_webshop.api.user_signup.create_customer_for_user"
     }
 }
+
+web_include_css = "/assets/karp_webshop/css/karp_webshop.css"
