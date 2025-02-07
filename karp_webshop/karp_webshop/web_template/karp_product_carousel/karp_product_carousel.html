@@ -1,0 +1,97 @@
+{% from "webshop/templates/includes/macros.html" import item_card, item_card_body %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+
+<div class="section-with-cards item-card-group-section">
+	<div class="item-group-header d-flex justify-content-between">
+		<div class="title-section">
+			{%- if title -%}
+			<h2 class="section-title">{{ title }}</h2>
+			{%- endif -%}
+			{%- if subtitle -%}
+			<p class="section-description">{{ subtitle }}</p>
+			{%- endif -%}
+		</div>
+		<div class="primary-action-section">
+			{%- if primary_action_url -%}
+			<a href="{{ primary_action_url }}" class="btn btn-primary pull-right">
+				{{ primary_action_label }} 
+			</a>
+			{%- endif -%}
+		</div>
+	</div>
+
+	<div class="row">
+        <div class="product-carousel owl-carousel">
+            {%- for index in ['1', '2', '3', '4', '5', '6', '7', '8'] -%}
+            {%- set item = values['wi_' + index] -%}
+                {%- if item -%}
+                    {%- set web_item = frappe.get_doc("Website Item", item) -%}
+                    <div class="item">
+                        <div class="product-card">
+                            <a href="{{ web_item.route or '#' }}">
+                                <img src="{{ web_item.website_image }}" alt="{{ web_item.web_item_name }}" class="img-fluid">
+                            </a>
+                            <h5 class="product-name">{{ web_item.web_item_name }}</h5>
+                            {% set price = frappe.db.get_value("Item Price", {"item_code": web_item.item_code, "selling": 1}, "price_list_rate") %}
+                            <p class="price">₹ {{ price }}</p>
+                        </div>
+                    </div>
+                {%- endif -%}
+            {%- endfor -%}
+        </div>   
+	</div>
+</div>
+
+<style>
+    .product-carousel .item {
+        padding: 15px;
+        text-align: center;
+    }
+
+    .product-card {
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .product-card img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    @media (max-width: 768px) {
+        .product-card {
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+    frappe.ready(function ()  {
+  
+        $(".product-carousel").owlCarousel({
+            loop: true,
+            margin: 10,
+            nav: false,
+            slideBy: 4,
+            dots:true,
+            autoplay:true,
+            checkVisible:false,
+            autoplayTimeout:2000,
+            responsive: {
+                0: {
+                    items: 1  // 1 product on small screens
+                },
+                768: {
+                    items: 2
+                },
+                1024: {
+                    items: 4  // 4 products on large screens
+                }
+            }
+        });
+    });
+
+</script>

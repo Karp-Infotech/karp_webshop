@@ -277,3 +277,7 @@ web_include_css = "/assets/karp_webshop/css/karp_webshop.css"
 web_template_overrides = {
     "Item Card Group": "karp_webshop/webshop/webshop/web_template/item_card_group/item_card_group.html"
 }
+
+web_include_js = [
+    "https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+]
