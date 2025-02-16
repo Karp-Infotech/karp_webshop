@@ -1,1 +1,5 @@
 __version__ = "0.0.1"
+import erpnext.controllers.website_list_for_contact as website_list_for_contact
+from karp_webshop.overrides.website_list_for_contact import karp_get_transaction_list
+
+website_list_for_contact.get_transaction_list = karp_get_transaction_list

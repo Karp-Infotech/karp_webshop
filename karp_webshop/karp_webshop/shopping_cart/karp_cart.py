@@ -88,6 +88,7 @@ def get_billing_addresses(party=None):
 
 @frappe.whitelist()
 def place_order():
+
 	quotation = _get_cart_quotation()
 	cart_settings = frappe.get_cached_doc("Webshop Settings")
 	quotation.company = cart_settings.company
@@ -108,6 +109,7 @@ def place_order():
 		)
 	)
 	sales_order.payment_schedule = []
+	sales_order.custom_sales_channel = "Web" 
 
 	if not cint(cart_settings.allow_items_not_in_stock):
 		for item in sales_order.get("items"):
@@ -131,7 +133,7 @@ def place_order():
 
 	sales_order.flags.ignore_permissions = True
 	sales_order.insert()
-	sales_order.submit()
+	#sales_order.submit() Web orders are not finalized after consultation
 
 	if hasattr(frappe.local, "cookie_manager"):
 		frappe.local.cookie_manager.delete_cookie("cart_count")

@@ -142,7 +142,7 @@ $.extend(shopping_cart, {
 
 		return frappe.call({
 			type: "POST",
-			method: "webshop.webshop.shopping_cart.cart.place_order",
+			method: "karp_webshop.karp_webshop.shopping_cart.karp_cart.place_order",
 			btn: btn,
 			callback: function(r) {
 				if(r.exc) {
