@@ -33,7 +33,7 @@ def karp_get_transaction_list(
 	if (user != "Guest" and is_website_user()) or doctype == "Request for Quotation":
 		parties_doctype = "Request for Quotation Supplier" if doctype == "Request for Quotation" else doctype
 		# find party for this contact
-		customers, suppliers = get_customers_suppliers(parties_doctype, user)
+		customers, suppliers = website_list_for_contact.get_customers_suppliers(parties_doctype, user)
 
 		if customers:
 			if doctype == "Quotation":
@@ -48,7 +48,7 @@ def karp_get_transaction_list(
 
 		if doctype == "Request for Quotation":
 			parties = customers or suppliers
-			return rfq_transaction_list(parties_doctype, doctype, parties, limit_start, limit_page_length)
+			return website_list_for_contact.rfq_transaction_list(parties_doctype, doctype, parties, limit_start, limit_page_length)
 
 		# Since customers and supplier do not have direct access to internal doctypes
 		ignore_permissions = True
