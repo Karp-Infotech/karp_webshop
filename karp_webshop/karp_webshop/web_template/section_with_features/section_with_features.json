@@ -25,6 +25,21 @@
    "reqd": 0
   },
   {
+   "__unsaved": 1,
+   "fieldname": "is_carousel",
+   "fieldtype": "Check",
+   "label": "Is Carousel",
+   "reqd": 0
+  },
+  {
+   "__islocal": 1,
+   "__unsaved": 1,
+   "fieldname": "autoplay",
+   "fieldtype": "Check",
+   "label": "Autoplay",
+   "reqd": 0
+  },
+  {
    "fieldname": "features",
    "fieldtype": "Table Break",
    "label": "Features",
@@ -49,8 +64,6 @@
    "reqd": 0
   },
   {
-   "__islocal": 1,
-   "__unsaved": 1,
    "fieldname": "url_label",
    "fieldtype": "Data",
    "label": "URL Label",
@@ -63,8 +76,8 @@
    "reqd": 0
   }
  ],
- "idx": 15,
- "modified": "2025-02-07 23:10:36.204920",
+ "idx": 18,
+ "modified": "2025-02-20 21:59:21.933826",
  "modified_by": "Administrator",
  "module": "Karp Webshop",
  "name": "Section with Features",
