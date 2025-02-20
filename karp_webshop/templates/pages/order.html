@@ -75,13 +75,16 @@
 		</div>
 		<div class="row indicator-container mt-2">
 			<div class="col-10">
-				<span class="indicator-pill {{ doc.indicator_color or (" blue" if doc.docstatus==1 else "darkgrey" ) }}">
-					{% if doc.doctype == "Quotation" and not doc.docstatus %}
-						{{ _("Pending") }}
-					{% else %}
-						{{ _(doc.get('indicator_title')) or _(doc.status) or _("Submitted") }}
-					{% endif %}
-				</span>
+				{% if doc.status != "Draft" %}
+					<span class="indicator-pill {{ doc.indicator_color or (" blue" if doc.docstatus==1 else "darkgrey" ) }}">
+						
+							{% if doc.doctype == "Quotation" and not doc.docstatus %}
+								{{ _("Pending") }}
+							{% else %}
+								{{ _(doc.get('indicator_title')) or _(doc.status) or _("Submitted") }}
+							{% endif %}						
+					</span>
+				{% endif %}
 			</div>
 			<div class="text-right col-2">
 				{%- set party_name = doc.supplier_name if doc.doctype in ['Supplier Quotation', 'Purchase Invoice', 'Purchase

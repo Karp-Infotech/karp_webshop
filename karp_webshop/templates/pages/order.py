@@ -73,7 +73,7 @@ def create_user_msg(sales_order):
 	if is_direct_purchase(sales_order) or sales_order.custom_payment_ready:
 		return "Your order is successfully placed. Please pay balance amount."
 	else:
-		return "Your order is successfully placed. Our expert will reach out you for further procesing."
+		return "Your order is successfully placed. Our expert will reach out for further procesing."
 	
 def is_direct_purchase(sales_order):
 	is_direct_purchase = True

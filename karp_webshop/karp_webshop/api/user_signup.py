@@ -6,9 +6,6 @@ def create_customer_for_user(doc, method):
         return  # Customer already exists
 
     k_ws_settings = frappe.get_single("Karp Webshop Settings") 
-    
-    print("Loylat Program: ")
-    print(k_ws_settings.b2c_loyalty_program)
 
     customer_name = doc.full_name or doc.email  # Use full name or fallback to email
     customer_doc = frappe.get_doc({
