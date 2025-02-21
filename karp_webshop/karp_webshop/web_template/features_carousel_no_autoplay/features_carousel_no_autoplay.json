@@ -1,22 +1,29 @@
 {
+ "__islocal": true,
  "__unsaved": 1,
- "creation": "2020-08-18 13:10:11.476496",
+ "creation": "2025-02-21 10:07:55.180149",
  "docstatus": 0,
  "doctype": "Web Template",
  "fields": [
   {
+   "__islocal": 1,
+   "__unsaved": 1,
    "fieldname": "title",
    "fieldtype": "Data",
    "label": "Title",
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
    "fieldname": "subtitle",
    "fieldtype": "Data",
    "label": "Subtitle",
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
    "default": "3",
    "fieldname": "columns",
    "fieldtype": "Select",
@@ -25,47 +32,59 @@
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
    "fieldname": "features",
    "fieldtype": "Table Break",
    "label": "Features",
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
    "fieldname": "title",
    "fieldtype": "Data",
    "label": "Title",
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
    "fieldname": "content",
    "fieldtype": "Small Text",
    "label": "Content",
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
    "fieldname": "url",
    "fieldtype": "Small Text",
    "label": "URL",
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
    "fieldname": "url_label",
    "fieldtype": "Data",
    "label": "URL Label",
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
    "fieldname": "icon",
    "fieldtype": "Attach Image",
    "label": "Icon",
    "reqd": 0
   }
  ],
- "idx": 50,
- "modified": "2025-02-21 10:11:59.165743",
+ "idx": 0,
+ "modified": "2025-02-21 10:07:55.180149",
  "modified_by": "Administrator",
  "module": "Karp Webshop",
- "name": "Section with Features",
+ "name": "Features Carousel No Autoplay",
  "owner": "Administrator",
  "standard": 1,
  "template": "",

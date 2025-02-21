@@ -1,0 +1,63 @@
+
+<div class="section-with-features">
+	{%- if title -%}
+	<h2 class="section-title">{{ _(title) }}</h2>
+	{%- endif -%}
+	{%- if subtitle -%}
+	<p class="section-description">{{ _(subtitle) }}</p>
+	{%- endif -%}
+
+	<div class="row">
+		{% if not subtitle %}style="margin-top: -1.5rem"{% endif %}
+        <div class="feature-carousel-no-autoplay owl-carousel">
+            {%- for feature in features -%}
+            <div class="item">
+                <div class="product-card">
+                    <h5 class="product-name">{{ _(feature.title)  }}</h5>
+                    {%- if feature.content -%}
+                    <p class="feature-content">{{ frappe.utils.md_to_html(_(feature.content)) }}</p>
+                    {%- endif -%}
+
+                    <div>
+                        {%- if feature.url -%}
+                        <a href="{{ feature.url }}" class="feature-url stretched-link"> {{ feature.url_label }} →</a>
+                        {%- endif -%}
+                    </div>
+                </div>
+            </div>
+            {%- endfor -%}
+        </div>   
+		
+	</div>
+</div>
+
+
+<script>
+    frappe.ready(function ()  {
+
+        $(".feature-carousel-no-autoplay").owlCarousel({
+            loop: true,
+            margin: 10,
+            nav: false,
+            slideBy: 4,
+            dots:true,
+            autoplay:false,
+            checkVisible:false,
+            autoplayTimeout:2000,
+            responsive: {
+                0: {
+                    items: 1,  // 1 product on small screens
+                    autoplay: true
+                },
+                768: {
+                    items: 2,
+                    autoplay: true
+                },
+                1024: {
+                    items: 4  // 4 products on large screens
+                }
+            }
+        });
+    });
+
+</script>
