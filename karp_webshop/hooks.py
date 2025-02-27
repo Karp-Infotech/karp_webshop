@@ -145,6 +145,14 @@ app_license = "mit"
 # 	}
 # }
 
+
+doc_events = {
+    "Sales Order": {
+        "on_submit": "karp_webshop.sales_order.calculate_sales_dist"
+    }
+ }
+
+
 # Scheduled Tasks
 # ---------------
 
@@ -281,3 +289,5 @@ web_template_overrides = {
 web_include_js = [
     "https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
 ]
+
+

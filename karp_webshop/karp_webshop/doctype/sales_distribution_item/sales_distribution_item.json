@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-25 07:22:36.641183",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "item_group",
+  "brand",
+  "kk_share_",
+  "sales_channel",
+  "customer_relationship"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item Group",
+   "options": "Item Group",
+   "reqd": 1
+  },
+  {
+   "fieldname": "brand",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Brand",
+   "options": "Brand",
+   "reqd": 1
+  },
+  {
+   "fieldname": "kk_share_",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "KK Share (%)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sales_channel",
+   "fieldtype": "Select",
+   "label": "Sales Channel",
+   "options": "Web\nStore",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer_relationship",
+   "fieldtype": "Select",
+   "label": "Customer Relationship",
+   "options": "Direct\nIndirect",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-02-27 07:11:47.463825",
+ "modified_by": "Administrator",
+ "module": "Karp Webshop",
+ "name": "Sales Distribution Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
