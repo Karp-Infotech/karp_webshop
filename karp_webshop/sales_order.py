@@ -3,7 +3,6 @@ from datetime import date
 
 def calculate_sales_dist(doc, method):
     
-    print(" In calculate_sales_dist")
     # Get the customer linked to the sales order
     customer = frappe.get_doc("Customer", doc.customer)
     kk_sales_portion = 0
