@@ -148,7 +148,7 @@ app_license = "mit"
 
 doc_events = {
     "Sales Order": {
-        "on_submit": "karp_webshop.sales_order.calculate_sales_dist"
+        "on_update": "karp_webshop.sales_order.calculate_sales_dist"
     }
  }
 
