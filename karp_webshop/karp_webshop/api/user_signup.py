@@ -17,7 +17,8 @@ def create_customer_for_user(doc, method):
         "custom_customer_segment": "Regular",
         "email_id": doc.email,
         "custom_linked_user": doc.name,
-        "loyalty_program": k_ws_settings.b2c_loyalty_program
+        "loyalty_program": k_ws_settings.b2c_loyalty_program,
+        "gender": doc.gender
     })
     customer_doc.insert(ignore_permissions=True)
 

@@ -146,11 +146,6 @@ app_license = "mit"
 # }
 
 
-doc_events = {
-    "Sales Order": {
-        "on_update": "karp_webshop.sales_order.calculate_sales_dist"
-    }
- }
 
 
 # Scheduled Tasks
@@ -273,11 +268,7 @@ app_include_js = [
 ]
 
 
-doc_events = {
-    "User": {
-        "after_insert": "karp_webshop.karp_webshop.api.user_signup.create_customer_for_user"
-    }
-}
+
 
 web_include_css = "/assets/karp_webshop/css/karp_webshop.css"
 
