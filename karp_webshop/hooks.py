@@ -252,27 +252,10 @@ website_route_rules = [
   {'from_route': '/pc/women-sg', 'to_route': 'pc'},
   {'from_route': '/pc/men-sg', 'to_route': 'pc'},
   {'from_route': '/pc/kids-sg', 'to_route': 'pc'},
-  {'from_route': '/pc/ray-ban-women-eg', 'to_route': 'pc'},
-  {'from_route': '/pc/ray-ban-men-eg', 'to_route': 'pc'},
-  {'from_route': '/pc/ray-ban-women-sg', 'to_route': 'pc'},
-  {'from_route': '/pc/ray-ban-men-sg', 'to_route': 'pc'},
-  {'from_route': '/pc/ray-ban-kids-eg', 'to_route': 'pc'},
-  {'from_route': '/pc/ray-ban-kids-sg', 'to_route': 'pc'},
-  {'from_route': '/pc/optivo-women-eg', 'to_route': 'pc'},
-  {'from_route': '/pc/optivo-men-eg', 'to_route': 'pc'},
-  {'from_route': '/pc/optivo-women-sg', 'to_route': 'pc'},
-  {'from_route': '/pc/optivo-men-sg', 'to_route': 'pc'},
-  {'from_route': '/pc/optivo-kids-eg', 'to_route': 'pc'},
-  {'from_route': '/pc/optivo-kids-sg', 'to_route': 'pc'},
-  {'from_route': '/pc/regalis-women-eg', 'to_route': 'pc'},
-  {'from_route': '/pc/regalis-men-eg', 'to_route': 'pc'},
-  {'from_route': '/pc/regalis-women-sg', 'to_route': 'pc'},
-  {'from_route': '/pc/regalis-men-sg', 'to_route': 'pc'},
-  {'from_route': '/pc/regalis-kids-eg', 'to_route': 'pc'},
-  {'from_route': '/pc/regalis-kids-sg', 'to_route': 'pc'},
-  {'from_route': '/pc/women-screen-glasses', 'to_route': 'pc'},
-  {'from_route': '/pc/men-screen-glasses', 'to_route': 'pc'},
-  {'from_route': '/pc/contact-lenses', 'to_route': 'pc'}
+  {'from_route': '/brand/optivo', 'to_route': 'pc'},
+  {'from_route': '/brand/regalis', 'to_route': 'pc'},
+  {'from_route': '/pc/optivo', 'to_route': 'pc'},
+  {'from_route': '/pc/regalis', 'to_route': 'pc'}
 ]
 
 app_include_js = [
