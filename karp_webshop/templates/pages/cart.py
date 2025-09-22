@@ -12,9 +12,9 @@ def get_context(context):
 
 	# Get the logged-in user
     user_email = frappe.session.user
-    customer = frappe.get_value("Customer", {"custom_linked_user": user_email}, ["name", "customer_type"], as_dict=True)
 
-    print(customer)
+    customer = get_customer_by_email(user_email)
+
 
     # Pass customer data to context
     context.customer_type = customer.customer_type if customer.customer_type else ""
@@ -23,3 +23,26 @@ def get_context(context):
     context.update(get_cart_quotation())
     
 	
+def get_customer_by_email(email):
+    # Find Contact with given email
+    contact = frappe.db.get_value(
+        "Contact Email",
+        {"email_id": email},
+        "parent"
+    )
+    if not contact:
+        return None
+
+    # Find linked Customer from Contact
+    customer = frappe.db.get_value(
+        "Dynamic Link",
+        {
+            "parent": contact,
+            "parenttype": "Contact",
+            "link_doctype": "Customer"
+        },
+        "link_name"
+    )
+    # Load full Customer document
+    customer_doc = frappe.get_doc("Customer", customer)
+    return customer_doc

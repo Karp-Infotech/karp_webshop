@@ -939,7 +939,31 @@ def get_customer_type():
 	user_email = frappe.session.user
 
     # Fetch the customer linked to this user
-	customer = frappe.get_value("Customer", {"custom_linked_user": user_email}, ["name", "customer_type"], as_dict=True)
+	customer = get_customer_by_email(user_email)
 
 	return customer.customer_type 
 
+
+def get_customer_by_email(email):
+    # Find Contact with given email
+    contact = frappe.db.get_value(
+        "Contact Email",
+        {"email_id": email},
+        "parent"
+    )
+    if not contact:
+        return None
+
+    # Find linked Customer from Contact
+    customer = frappe.db.get_value(
+        "Dynamic Link",
+        {
+            "parent": contact,
+            "parenttype": "Contact",
+            "link_doctype": "Customer"
+        },
+        "link_name"
+    )
+    # Load full Customer document
+    customer_doc = frappe.get_doc("Customer", customer)
+    return customer_doc

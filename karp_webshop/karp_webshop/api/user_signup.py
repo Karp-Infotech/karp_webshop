@@ -1,6 +1,10 @@
 import frappe
 
 def create_customer_for_user(doc, method):
+
+    # This is not needed. Should be removed.
+    return
+
     """Create a Customer when a new user signs up on the webshop."""
     if frappe.db.exists("Customer", {"custom_linked_user": doc.name}):
         return  # Customer already exists
