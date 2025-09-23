@@ -262,11 +262,7 @@ app_include_js = [
     "/assets/karp_webshop/js/product_ui/karp_grid.js"
 ]
 
-
-
-
 web_include_css = "/assets/karp_webshop/css/karp_webshop.css"
-
 
 web_template_overrides = {
     "Item Card Group": "karp_webshop/webshop/webshop/web_template/item_card_group/item_card_group.html"
@@ -276,4 +272,11 @@ web_include_js = [
     "https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
 ]
 
+# Run patch after boot
+app_include = "karp_webshop.karp_webshop.overrides.query"
+
+# This ensures your patch runs before any request (web or desk)
+before_app_request = [
+    "karp_webshop.karp_webshop.overrides.boot_patch"
+]
 
