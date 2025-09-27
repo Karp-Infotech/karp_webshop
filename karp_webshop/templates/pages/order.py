@@ -41,9 +41,6 @@ def get_context(context):
 	else:
 		context.print_format = "Standard"
 
-	if not frappe.has_website_permission(context.doc):
-		frappe.throw(_("Not Permitted"), frappe.PermissionError)
-
 	# check for the loyalty program of the customer
 	customer_loyalty_program = frappe.db.get_value(
 		"Customer", context.doc.customer_name, "loyalty_program"

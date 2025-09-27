@@ -262,6 +262,10 @@ app_include_js = [
     "/assets/karp_webshop/js/product_ui/karp_grid.js"
 ]
 
+web_include_js = [
+    "/assets/karp_webshop/js/guest_session.js"
+]
+
 web_include_css = "/assets/karp_webshop/css/karp_webshop.css"
 
 web_template_overrides = {
@@ -269,7 +273,8 @@ web_template_overrides = {
 }
 
 web_include_js = [
-    "https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+    "https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js",
+    "/assets/karp_webshop/js/guest_session.js"
 ]
 
 # Run patch after boot
@@ -279,4 +284,16 @@ app_include = "karp_webshop.karp_webshop.overrides.query"
 before_app_request = [
     "karp_webshop.karp_webshop.overrides.boot_patch"
 ]
+
+doc_events = {
+    "Sales Order": {
+        "on_update": "karp_webshop.karp_webshop.overrides.order_hooks.update_guest_customer_info",
+        
+    }
+}
+
+
+override_whitelisted_methods = {
+    "frappe.frappe.core.doctype.user.user.sign_up": "karp_webshop.api.karp_user.karp_sign_up"
+}
 

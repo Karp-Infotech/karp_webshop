@@ -5,7 +5,7 @@ import frappe
 
 no_cache = 1
 
-from webshop.webshop.shopping_cart.cart import get_cart_quotation
+from karp_webshop.karp_webshop.shopping_cart.karp_cart import get_cart_quotation
 
 
 def get_context(context):
@@ -20,7 +20,7 @@ def get_context(context):
     context.customer_type = customer.customer_type if customer.customer_type else ""
 
     context.body_class = "product-page"
-    context.update(get_cart_quotation())
+    context.update(get_cart_quotation(None))
     
 	
 def get_customer_by_email(email):

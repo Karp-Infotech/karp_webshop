@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // License: GNU General Public License v3. See license.txt
 
+
 // shopping cart
 frappe.provide("webshop.webshop.shopping_cart");
 var shopping_cart = webshop.webshop.shopping_cart;
@@ -71,7 +72,8 @@ $.extend(shopping_cart, {
 			args: {
 				item_code: item_code,
 				qty: qty,
-				with_items: with_items
+				with_items: with_items,
+				guest_session_id: localStorage.getItem("guest_session_id")
 			},
 			callback: function(r) {
 				shopping_cart.unfreeze();
@@ -107,22 +109,57 @@ $.extend(shopping_cart, {
 			},
 		});
 	},
+	
+	set_cart_count: function(animate=false) {
+		$(".intermediate-empty-cart").remove();
+
+		var cart_count = frappe.get_cookie("cart_count");
+
+
+		if(cart_count) {
+			$(".shopping-cart").toggleClass('hidden', false);
+		}
+
+		var $cart = $('.cart-icon');
+		var $badge = $cart.find("#cart-count");
+
+		if(parseInt(cart_count) === 0 || cart_count === undefined) {
+			$cart.css("display", "none");
+			$(".cart-tax-items").hide();
+			$(".btn-place-order").hide();
+			$(".cart-payment-addresses").hide();
+
+			let intermediate_empty_cart_msg = `
+				<div class="text-center w-100 intermediate-empty-cart mt-4 mb-4 text-muted">
+					${ __("Cart is Empty") }
+				</div>
+			`;
+			$(".cart-table").after(intermediate_empty_cart_msg);
+		}
+		else {
+			$cart.css("display", "inline");
+			$("#cart-count").text(cart_count);
+		}
+
+		if(cart_count) {
+			$badge.html(cart_count);
+
+			if (animate) {
+				$cart.addClass("cart-animate");
+				setTimeout(() => {
+					$cart.removeClass("cart-animate");
+				}, 500);
+			}
+		} else {
+			$badge.remove();
+		}
+	},
 
 	bind_add_to_cart_action() {
 		$('.page_content').on('click', '.btn-add-to-cart-list', (e) => {
 
 			const $btn = $(e.currentTarget);
 			//$btn.prop('disabled', true);
-
-			if (frappe.session.user==="Guest") {
-				if (localStorage) {
-					localStorage.setItem("last_visited", window.location.pathname);
-				}
-				frappe.call('webshop.webshop.api.get_guest_redirect_on_action').then((res) => {
-					window.location.href = res.message || "/login";
-				});
-				return;
-			}
 
 			//$btn.addClass('hidden');
 			//$btn.closest('.cart-action-container').addClass('d-flex');

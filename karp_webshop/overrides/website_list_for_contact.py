@@ -28,7 +28,7 @@ def karp_get_transaction_list(
 		filters = {}
 
 	filters["docstatus"] = ["<", "2"] if doctype in ["Supplier Quotation", "Purchase Invoice"] else ["<=", "1"]
-	print("This is from Karp")
+	
 
 	if (user != "Guest" and is_website_user()) or doctype == "Request for Quotation":
 		parties_doctype = "Request for Quotation Supplier" if doctype == "Request for Quotation" else doctype

@@ -1,63 +1,59 @@
+# my_app/api/signup.py
 import frappe
 from frappe import _
-
-from frappe.utils import (
-	escape_html
-)
+# import core sign_up BEFORE we override it via hooks
+try:
+    from frappe.core.doctype.user.user import sign_up as core_sign_up
+except Exception:
+    core_sign_up = None
 
 @frappe.whitelist(allow_guest=True)
-def karp_sign_up(email, full_name, password,redirect_to: str) -> tuple[int, str]:
-    """Custom sign-up method that also accepts phone number"""
-
-    if is_signup_disabled():
-        frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
-
-    user = frappe.db.get("User", {"email": email})
-    if user:
-        if user.enabled:
-            return 0, _("Already Registered")
-        else:
-            return 0, _("Registered but disabled")
+def karp_sign_up(email, full_name, redirect_to=None, **kwargs):
+    """
+    Wrapper around frappe.core.doctype.user.user.sign_up
+    - Calls the core sign_up to create the User (so existing behaviour + email flows remain)
+    - If guest_session_id cookie exists, find Customer and Contact and link the new User
+    """
+    # 1) call core sign_up (if available) so default flow is preserved
+    if core_sign_up:
+        # core_sign_up returns a message string (e.g. "Registration Details Emailed.")
+        core_result = core_sign_up(email=email, full_name=full_name, redirect_to=redirect_to)
     else:
-        if frappe.db.get_creation_count("User", 60) > 300:
-            frappe.respond_as_web_page(
-                _("Temporarily Disabled"),
-                _(
-                    "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
-                ),
-                http_status_code=429,
-            )
+        # fallback: create minimal User (be careful: this will not send welcome email etc)
+        frappe.throw(_("Core sign_up not available"))
 
-        from frappe.utils import random_string
+    # 2) find the just-created user
+    user_name = frappe.db.get_value("User", {"email": email}, "name")
+    if not user_name:
+        return core_result  # nothing else we can do
 
-        user = frappe.get_doc(
-            {
-                "doctype": "User",
-                "email": email,
-                "first_name": escape_html(full_name),
-                "enabled": 1,
-                "new_password": password,
-                "user_type": "Website User",
-            }
-        )
-        user.flags.ignore_permissions = True
-        user.flags.ignore_password_policy = True
-        user.insert()
+    # 3) read guest_session_id cookie
+    guest_session_id = None
+    try:
+        guest_session_id = frappe.request.cookies.get("guest_session_id")
+    except Exception:
+        # request may not be available in some contexts
+        guest_session_id = None
 
-        # set default signup role as per Portal Settings
-        default_role = frappe.db.get_single_value("Portal Settings", "default_role")
-        if default_role:
-            user.add_roles(default_role)
+    if not guest_session_id:
+        return core_result
 
-        if redirect_to:
-            frappe.cache.hset("redirect_after_login", user.name, redirect_to)
+    # 4) find customer with this guest_session_id
+    customer_name = frappe.db.get_value("Customer", {"custom_guest_session_id": guest_session_id}, "name")
+    
+    if not customer_name:
+        return core_result
 
-        #if user.flags.email_sent:
-           # return 1, _("Please check your email for verification")
-       # else:
-         #   return 2, _("Please ask your administrator to verify your sign-up")
-        return (1, "Welcome " + full_name + " ! Please login to continue shopping perfect eyewear for you.")
+    # 5) find Contact linked to this customer (Dynamic Link table -> parent is Contact)
+    contact_parent = frappe.db.get_value(
+        "Dynamic Link",
+        {"link_doctype": "Customer", "link_name": customer_name, "parenttype": "Contact"},
+        "parent"
+    )
 
+    if contact_parent:
+        contact = frappe.get_doc("Contact", contact_parent)
+        contact.user = user_name
+        contact.save(ignore_permissions=True)
 
-def is_signup_disabled():
-	return frappe.get_website_settings("disable_signup")
+    return core_result
