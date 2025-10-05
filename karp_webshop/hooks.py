@@ -255,7 +255,9 @@ website_route_rules = [
   {'from_route': '/brand/optivo', 'to_route': 'pc'},
   {'from_route': '/brand/regalis', 'to_route': 'pc'},
   {'from_route': '/pc/optivo', 'to_route': 'pc'},
-  {'from_route': '/pc/regalis', 'to_route': 'pc'}
+  {'from_route': '/pc/regalis', 'to_route': 'pc'},
+  {'from_route': '/pc/foldable_sunglasses', 'to_route': 'pc'},
+  {'from_route': '/pc/clipons', 'to_route': 'pc'}
 ]
 
 app_include_js = [
