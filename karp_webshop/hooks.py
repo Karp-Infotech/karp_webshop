@@ -258,7 +258,16 @@ website_route_rules = [
   {'from_route': '/pc/optivo', 'to_route': 'pc'},
   {'from_route': '/pc/regalis', 'to_route': 'pc'},
   {'from_route': '/pc/foldable_sunglasses', 'to_route': 'pc'},
-  {'from_route': '/pc/clipons', 'to_route': 'pc'}
+  {'from_route': '/pc/clipons', 'to_route': 'pc'},
+  {'from_route': '/pc/round', 'to_route': 'pc'},
+  {'from_route': '/pc/rhombus', 'to_route': 'pc'},
+  {'from_route': '/pc/square', 'to_route': 'pc'},
+  {'from_route': '/pc/hexa', 'to_route': 'pc'},
+  {'from_route': '/pc/penta', 'to_route': 'pc'},
+  {'from_route': '/pc/cateye', 'to_route': 'pc'},
+  {'from_route': '/pc/clubmaster', 'to_route': 'pc'},
+  {'from_route': '/pc/oval', 'to_route': 'pc'},
+  {'from_route': '/pc/aviator', 'to_route': 'pc'}
 ]
 
 app_include_js = [
