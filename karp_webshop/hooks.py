@@ -275,7 +275,10 @@ website_route_rules = [
   {'from_route': '/pc/clubmaster', 'to_route': 'pc'},
   {'from_route': '/pc/oval', 'to_route': 'pc'},
   {'from_route': '/pc/aviator', 'to_route': 'pc'},
-  {'from_route': '/pc/rectanngle', 'to_route': 'pc'}
+  {'from_route': '/pc/rectanngle', 'to_route': 'pc'},
+  {'from_route': '/pc/screen', 'to_route': 'pc'},
+  {'from_route': '/pc/screen-men', 'to_route': 'pc'},
+  {'from_route': '/pc/screen-women', 'to_route': 'pc'}
 ]
 
 app_include_js = [
