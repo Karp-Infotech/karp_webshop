@@ -29,6 +29,27 @@ class KarpProductGrid extends webshop.ProductGrid {
 			return ``;
 		}
 	}
+
+	get_price_html(item) {
+
+		let price_html = `
+			<div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
+				${ item.formatted_price || '' }
+		`;
+
+		if (item.custom_mrp) {
+			price_html += `
+				<small class="striked-price">
+					<s>${ item.custom_mrp ? "₹" + item.custom_mrp : "" }</s>
+				</small>
+				<!-- <small class="ml-1 product-info-green">
+					${ item.discount } OFF
+				</small>-->
+			`;
+		}
+		price_html += `</div>`;
+		return price_html;
+	}
 };
 
 // Assign the new class to webshop

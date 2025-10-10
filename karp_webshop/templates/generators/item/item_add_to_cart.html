@@ -4,6 +4,7 @@
 {% set product_info = shopping_cart.product_info %}
 
 <div class="item-cart row mt-2" data-variant-item-code="{{ item_code }}">
+
 	<div class="col-md-12">
 		<!-- Price and Availability -->
 		{% if cart_settings.show_price and product_info.price %}
@@ -14,17 +15,20 @@
 				{% if price_info.formatted_mrp %}
 					<span itemprop="lowPrice" content="{{ price_info.formatted_price_sales_uom }}">{{ price_info.formatted_price_sales_uom }}</span>
 				{% else %}
-					<span itemprop="highPrice" content="{{ price_info.formatted_price_sales_uom }}">{{ price_info.formatted_price_sales_uom }}</span>
+					<span itemprop="highPrice" content="{{ price_info.formatted_price_sales_uom }}"> {{ price_info.formatted_price_sales_uom }}</span>
 				{% endif %}
 
+					
 				<!-- Striked Price and Discount  -->
-				{% if price_info.formatted_mrp %}
+				{% if doc.custom_mrp %}
 					<small itemprop="highPrice" class="formatted-price">
-						<s>MRP {{ price_info.formatted_mrp }}</s>
+						<s>₹ {{ _(doc.custom_mrp) }}</s>
 					</small>
+					<!--
 					<small class="ml-1 formatted-price in-green">
 						-{{ price_info.get("formatted_discount_percent") or price_info.get("formatted_discount_rate")}}
 					</small>
+					-->
 				{% endif %}
 
 				<!--  Not Needed Price per UOM 

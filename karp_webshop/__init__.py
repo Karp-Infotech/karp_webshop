@@ -6,6 +6,9 @@ from webshop.webshop.doctype.item_review.item_review import get_customer
 from webshop.webshop.shopping_cart.product_info import get_product_info_for_website
 from webshop.webshop.utils.product import get_non_stock_item_status
 
+# apps/karp_webshop/karp_webshop/__init__.py
+# ensure patch module is loaded at app import time
+from .patches import product_query_patch  # noqa: F401
 
 website_list_for_contact.get_transaction_list = karp_get_transaction_list
 
