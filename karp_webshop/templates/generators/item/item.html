@@ -5,6 +5,8 @@
 
 <link rel="stylesheet" type="text/css" href="/assets/karp_webshop/css/karp_webshop.css">
 
+
+
 {% block breadcrumbs %}
 <div class="item-breadcrumbs small text-muted">
 	{% include "templates/includes/breadcrumbs.html" %}
@@ -76,6 +78,7 @@
 {% block base_scripts %}
 <!-- js should be loaded in body! -->
 <script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+<script defer src="/assets/karp_webshop/js/karp_shopping_cart.js"></script>
 {{ include_script("frappe-web.bundle.js") }}
 {{ include_script("controls.bundle.js") }}
 {{ include_script("dialog.bundle.js") }}

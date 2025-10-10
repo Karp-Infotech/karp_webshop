@@ -241,7 +241,7 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False):
 		return {"name": quotation.name}
 
 @frappe.whitelist(allow_guest=True)
-def add_item(item_code, qty, additional_notes=None, with_items=False, guest_session_id=None) :
+def add_item(item_code, qty, additional_notes=None, with_items=False) :
 
 
 	quotation = _get_cart_quotation(None)
@@ -251,7 +251,19 @@ def add_item(item_code, qty, additional_notes=None, with_items=False, guest_sess
 	)
 
 	user = frappe.session.user
-	if(user == "Guest"):
+	
+	if get_customer_type() == "Individual":
+		quotation.append(
+				"items",
+				{
+					"doctype": "Quotation Item",
+					"item_code": item_code,
+					"qty": 1,
+					"additional_notes": additional_notes,
+					"warehouse": warehouse,
+				},
+			)
+	else:
 		quotation_items = quotation.get("items", {"item_code": item_code})
 		if not quotation_items:
 			quotation.append(
@@ -268,35 +280,6 @@ def add_item(item_code, qty, additional_notes=None, with_items=False, guest_sess
 			quotation_items[0].qty = quotation_items[0].qty + cint(qty)
 			quotation_items[0].warehouse = warehouse
 			quotation_items[0].additional_notes = additional_notes
-	else:
-		if get_customer_type() == "Individual":
-			quotation.append(
-					"items",
-					{
-						"doctype": "Quotation Item",
-						"item_code": item_code,
-						"qty": 1,
-						"additional_notes": additional_notes,
-						"warehouse": warehouse,
-					},
-				)
-		else:
-			quotation_items = quotation.get("items", {"item_code": item_code})
-			if not quotation_items:
-				quotation.append(
-					"items",
-					{
-						"doctype": "Quotation Item",
-						"item_code": item_code,
-						"qty": qty,
-						"additional_notes": additional_notes,
-						"warehouse": warehouse,
-					},
-				)
-			else:
-				quotation_items[0].qty = quotation_items[0].qty + cint(qty)
-				quotation_items[0].warehouse = warehouse
-				quotation_items[0].additional_notes = additional_notes
 
 	apply_cart_settings(quotation=quotation)
 

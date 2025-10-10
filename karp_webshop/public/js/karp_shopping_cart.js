@@ -11,34 +11,27 @@ $.extend(shopping_cart, {
 
 	update_cart: function(opts) {
 
-		if (frappe.session.user==="Guest") {
-			if (localStorage) {
-				localStorage.setItem("last_visited", window.location.pathname);
-			}
-			frappe.call('webshop.webshop.api.get_guest_redirect_on_action').then((res) => {
-				window.location.href = res.message || "/login";
-			});
-		} else {
-			shopping_cart.freeze();
+		
+		shopping_cart.freeze();
 
-			return frappe.call({
-				type: "POST",
-				method: "karp_webshop.karp_webshop.shopping_cart.karp_cart.update_cart",
-				args: {
-					item_code: opts.item_code,
-					qty: opts.qty,
-					additional_notes: opts.additional_notes !== undefined ? opts.additional_notes : undefined,
-					with_items: opts.with_items || 0,
-				},
-				btn: opts.btn,
-				callback: function(r) {
-					shopping_cart.unfreeze();
-					shopping_cart.set_cart_count(true);
-					if(opts.callback)
-						opts.callback(r);
-				}
-			});
-		}
+		return frappe.call({
+			type: "POST",
+			method: "karp_webshop.karp_webshop.shopping_cart.karp_cart.update_cart",
+			args: {
+				item_code: opts.item_code,
+				qty: opts.qty,
+				additional_notes: opts.additional_notes !== undefined ? opts.additional_notes : undefined,
+				with_items: opts.with_items || 0,
+			},
+			btn: opts.btn,
+			callback: function(r) {
+				shopping_cart.unfreeze();
+				shopping_cart.set_cart_count(true);
+				if(opts.callback)
+					opts.callback(r);
+			}
+		});
+		
 	},
 
 	remove_item: function({q_item_name}) {
@@ -72,8 +65,7 @@ $.extend(shopping_cart, {
 			args: {
 				item_code: item_code,
 				qty: qty,
-				with_items: with_items,
-				guest_session_id: localStorage.getItem("guest_session_id")
+				with_items: with_items
 			},
 			callback: function(r) {
 				shopping_cart.unfreeze();
@@ -157,6 +149,7 @@ $.extend(shopping_cart, {
 
 	bind_add_to_cart_action() {
 		$('.page_content').on('click', '.btn-add-to-cart-list', (e) => {
+
 
 			const $btn = $(e.currentTarget);
 			//$btn.prop('disabled', true);
