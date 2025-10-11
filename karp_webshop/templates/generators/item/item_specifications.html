@@ -1,20 +1,30 @@
 <!-- Is reused to render within tabs as well as independently -->
-{% if website_specifications %}
+
 <div class="{{ 'mt-2' if not show_tabs else 'mt-5'}} item-website-specification">
 	<div class="col-md-11">
 		{% if not show_tabs %}
 			<div class="product-title mb-5 mt-4">
-				{{ _("Product Details") }}
+				{{ _("Additional Details") }}
 			</div>
 		{% endif %}
 		<table class="table">
-		{% for d in website_specifications -%}
 			<tr>
-				<td class="spec-label">{{ _(d.label) }}</td>
-				<td class="spec-content">{{ _(d.description) }}</td>
+				<td class="spec-label">{{ _("Frame Material") }}</td>
+				<td class="spec-content">{{ _(doc.custom_frame_material) }}</td>
 			</tr>
-		{%- endfor %}
+			<tr>
+				<td class="spec-label">{{ _("Frame Shape") }}</td>
+				<td class="spec-content">{{ _(doc.custom_frame_shape) }}</td>
+			</tr>
+			<tr>
+				<td class="spec-label">{{ _("Frame Brand") }}</td>
+				<td class="spec-content">{{ _(doc.brand) }}</td>
+			</tr>
+			<tr>
+				<td class="spec-label">{{ _("Frame Size") }}</td>
+				<td class="spec-content">{{ _(doc.custom_frame_size) }}</td>
+			</tr>
 		</table>
 	</div>
 </div>
-{% endif %}
+

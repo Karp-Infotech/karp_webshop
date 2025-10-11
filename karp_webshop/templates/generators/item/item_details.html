@@ -28,13 +28,15 @@
 	</div>
 
 	<p class="product-code">
-		<span class="product-item-group">
-			{{ _(doc.item_group) }}
+		<span class="product-item-group" itemprop="name">
+			{{ _("Size") }}: {{ _(doc.custom_frame_size) }}
 		</span>
+
 		<span class="product-item-code" itemprop="name">
-			{{ _("Item Code") }}:
+			{{ _("Model No") }}:
 		</span>
 		<span itemprop="name">{{ _(doc.item_code) }}</span>
+		
 	</p>
 
 
