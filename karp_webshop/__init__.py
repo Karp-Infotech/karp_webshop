@@ -77,7 +77,6 @@ def get_customer_by_email(email):
   
 
 def _get_customer_from_db(email):
-    print("Getting Customer from DB")
     # Find Contact with given email
     contact = frappe.db.get_value(
         "Contact Email",
