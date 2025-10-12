@@ -74,35 +74,154 @@
 		color: var(--white);
 	}
 </style>
+
 <script>
-	frappe.ready(() => {
-		const $zoom_wrapper = $('.image-zoom-view');
+frappe.ready(() => {
+  const $zoom_wrapper = $('.image-zoom-view');
+  const $thumbnails = $('.item-slideshow-image'); // thumbnail images
+  const $product_image = $('.product-image'); // main product image wrapper
 
-		$('.website-image').on('click', (e) => {
-			e.preventDefault();
-			const $img = $(e.target);
-			const src = $img.prop('src');
-			if (!src) return;
-			show_preview(src);
-		});
+  // Build an ordered array of srcs from thumbnails (fallback to main image if no thumbnails)
+  function getImageList() {
+    const list = [];
+    $thumbnails.each(function () {
+      const s = $(this).prop('src');
+      if (s) list.push(s);
+    });
+    // if no thumbnails, try main image
+    if (!list.length) {
+      const main = $product_image.find('img').first().prop('src');
+      if (main) list.push(main);
+    }
+    return list;
+  }
 
-		$zoom_wrapper.on('click', 'button', hide_preview);
+  // helper to set active thumbnail by src
+  function setActiveThumbnailBySrc(src) {
+    $thumbnails.removeClass('active');
+    $thumbnails.filter(function () {
+      return $(this).prop('src') === src;
+    }).first().addClass('active');
+  }
 
-		$(document).on('keydown', (e) => {
-			if (e.key === 'Escape') {
-				hide_preview();
-			}
-		});
+  // Update main product image (used when clicking a thumbnail normally)
+  function setMainImage(src) {
+    $product_image.find('a').prop('href', src);
+    $product_image.find('img').prop('src', src);
+  }
 
-		function show_preview(src) {
-			$zoom_wrapper.show();
-			const $img = $(`<img src="${src}">`)
-			$zoom_wrapper.append($img);
-		}
+  // Replace zoom image src (if zoom open) or open zoom for src
+  function setZoomImage(src) {
+    // if already a zoom img, replace src, else append new img
+    const $existing = $zoom_wrapper.find('img');
+    if ($existing.length) {
+      $existing.prop('src', src);
+    } else {
+      const $img = $(`<img src="${src}">`);
+      $zoom_wrapper.append($img);
+    }
+  }
 
-		function hide_preview() {
-			$zoom_wrapper.find('img').remove();
-			$zoom_wrapper.hide();
-		}
-	})
+  // Show preview overlay
+  function show_preview(src) {
+    $zoom_wrapper.show();
+    setZoomImage(src);
+  }
+
+  // Hide preview overlay
+  function hide_preview() {
+    $zoom_wrapper.find('img').remove();
+    $zoom_wrapper.hide();
+  }
+
+  // Return index in image list for a src
+  function indexOfSrc(src, list) {
+    for (let i = 0; i < list.length; i++) {
+      if (list[i] === src) return i;
+    }
+    return -1;
+  }
+
+  // Move to next/prev image while zoom open
+  function moveZoomBy(delta) {
+    const list = getImageList();
+    const $cur = $zoom_wrapper.find('img').first();
+    if (!$cur.length) return;
+    const curSrc = $cur.prop('src');
+    let idx = indexOfSrc(curSrc, list);
+    if (idx === -1) {
+      // if not found, fallback to first
+      idx = 0;
+    }
+    let nextIdx = (idx + delta + list.length) % list.length;
+    const nextSrc = list[nextIdx];
+    if (nextSrc) {
+      setZoomImage(nextSrc);
+      setActiveThumbnailBySrc(nextSrc);
+      setMainImage(nextSrc); // also keep main image synced
+    }
+  }
+
+  // Thumbnail click: swap main image, and if zoom is open update zoom image too
+  $('.page_content').on('click', '.item-slideshow-image', (e) => {
+    const $img = $(e.currentTarget);
+    const link = $img.prop('src');
+
+    // update main product image
+    setMainImage(link);
+
+    // mark active thumbnail
+    $('.item-slideshow-image').removeClass('active');
+    $img.addClass('active');
+
+    // if zoom overlay visible, swap zoom image instead of closing it
+    if ($zoom_wrapper.is(':visible')) {
+      setZoomImage(link);
+    }
+  });
+
+  // Click on main image: open zoom
+  $('.page_content').on('click', '.website-image', (e) => {
+    e.preventDefault();
+    const $img = $(e.target);
+    const src = $img.prop('src');
+    if (!src) return;
+    show_preview(src);
+  });
+
+  // Close button
+  $zoom_wrapper.on('click', 'button', (e) => {
+    e.stopPropagation();
+    hide_preview();
+  });
+
+  // Keyboard handling for Escape and arrow navigation
+  $(document).on('keydown', (e) => {
+    if (e.key === 'Escape') {
+      hide_preview();
+    } else if (e.key === 'ArrowRight') {
+      if ($zoom_wrapper.is(':visible')) {
+        moveZoomBy(1);
+      }
+    } else if (e.key === 'ArrowLeft') {
+      if ($zoom_wrapper.is(':visible')) {
+        moveZoomBy(-1);
+      }
+    }
+  });
+
+  // Click outside image in overlay closes it (optional) — keep user-friendly
+  $zoom_wrapper.on('click', (e) => {
+    // if clicked directly on overlay (not image), close
+    if ($(e.target).is('.image-zoom-view')) {
+      hide_preview();
+    }
+  });
+
+  // Optional: handle clicks on the zoom image itself to go next
+  $zoom_wrapper.on('click', 'img', (e) => {
+    // Click on the zoomed image goes to next image
+    moveZoomBy(1);
+  });
+});
 </script>
