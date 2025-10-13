@@ -162,6 +162,53 @@ frappe.ready(() => {
     }
   }
 
+let touchStartX = null;
+let touchStartY = null;
+const SWIPE_THRESHOLD = 50; // px, adjust if needed
+
+// Start touch
+$zoom_wrapper.on('touchstart', (e) => {
+  const t = e.originalEvent.touches ? e.originalEvent.touches[0] : null;
+  if (t) {
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+  }
+});
+
+// Move (optional: prevent default if you'd like to disable scrolling while zoom is open)
+// $zoom_wrapper.on('touchmove', (e) => {
+//   e.preventDefault();
+// });
+
+// End touch — decide swipe direction
+$zoom_wrapper.on('touchend', (e) => {
+  if (touchStartX === null) return;
+  const t = e.originalEvent.changedTouches ? e.originalEvent.changedTouches[0] : null;
+  if (!t) {
+    touchStartX = null;
+    touchStartY = null;
+    return;
+  }
+
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+
+  // ignore mostly-vertical swipes
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_THRESHOLD) {
+    if (dx < 0) {
+      // swipe left -> next image
+      moveZoomBy(1);
+    } else {
+      // swipe right -> previous image
+      moveZoomBy(-1);
+    }
+  }
+
+  // reset
+  touchStartX = null;
+  touchStartY = null;
+});
+
   // Thumbnail click: swap main image, and if zoom is open update zoom image too
   $('.page_content').on('click', '.item-slideshow-image', (e) => {
     const $img = $(e.currentTarget);
