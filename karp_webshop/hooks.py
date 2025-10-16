@@ -297,7 +297,8 @@ web_template_overrides = {
 
 web_include_js = [
     "https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js",
-    "/assets/karp_webshop/js/guest_session.js"
+    "/assets/karp_webshop/js/guest_session.js",
+    "/assets/karp_webshop/js/home_service.js"
 ]
 
 # Run patch after boot

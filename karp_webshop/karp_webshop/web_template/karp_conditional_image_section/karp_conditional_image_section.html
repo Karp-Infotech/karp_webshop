@@ -1,0 +1,64 @@
+
+
+{# --- Begin: Section Embed Web Template --- #}
+
+<!-- container must have an id so JS can show/hide it -->
+<div id="embed-section-wrapper" data-condition_api="{{ condition_api or '' }}" style="display:none;">
+  <div class="section-with-image {{ 'align-center' if align == 'Center' else '' }}">
+	<h2 class="section-title">{{ _(title) }}</h2>
+	{%- if subtitle -%}
+	<p class="section-description">{{ _(subtitle) }}</p>
+	{%- endif -%}
+
+	{%- if image -%}
+	{{ frappe.render_template('templates/includes/image_with_blur.html', {
+		"src": image,
+		"alt": image_description or title,
+		"class": "section-image"
+	}) }}
+	{%- endif -%}
+</div>
+
+</div>
+
+<script>
+frappe.ready(function() {
+
+  let hse = localStorage.getItem("hse");
+  if(hse) {
+    document.getElementById('embed-section-wrapper').style.display = '';
+    return;
+  }
+  // call the server method to check the flag
+  const wrapper = document.querySelector('#embed-section-wrapper');
+  const api = wrapper.dataset.condition_api;
+  
+  frappe.call({
+    method: api,
+    callback: function(r) {
+      try {
+        if (r.message && r.message.show) {
+          // show the embed section
+          document.getElementById('embed-section-wrapper').style.display = '';
+          localStorage.setItem("hse", true);
+        } else {
+          // remove element to avoid empty space
+          var el = document.getElementById('embed-section-wrapper');
+          if (el && el.parentNode) el.parentNode.removeChild(el);
+        }
+      } catch (e) {
+        // on error just remove the element (safer)
+        var el = document.getElementById('embed-section-wrapper');
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+      }
+    },
+    error: function() {
+      // on request error remove placeholder
+      var el = document.getElementById('embed-section-wrapper');
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+    }
+  });
+});
+</script>
+
+{# --- End: Section Embed Web Template --- #}
