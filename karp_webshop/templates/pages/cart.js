@@ -138,13 +138,13 @@ $.extend(shopping_cart, {
 	},
 
 	place_order: function(btn) {
-		shopping_cart.freeze();
 
 		return frappe.call({
 			type: "POST",
 			method: "karp_webshop.karp_webshop.shopping_cart.karp_cart.place_order",
 			btn: btn,
 			callback: function(r) {
+				
 				if(r.exc) {
 					shopping_cart.unfreeze();
 					var msg = "";

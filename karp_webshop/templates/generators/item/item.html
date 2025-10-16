@@ -27,6 +27,27 @@
 	</div>
 </div>
 
+
+{% if doc.custom_frame_material %}
+	{% set material_description = frappe.db.get_value('Frame Material', doc.custom_frame_material, 'description') %}
+{% else %}
+	{% set material_description = '' %}
+{% endif %}
+
+{% if material_description %}
+<!-- Product Description -->
+<div>
+
+	<div class="product-container">
+
+			<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
+				<!-- Product Specifications Table Section -->
+				{% include "templates/generators/item/item_description.html"%}
+			</div>
+	</div>
+
+</div>
+{% endif %}
 <!-- Additional Info/Reviews, Recommendations -->
 <div class="d-flex">
 	{% set show_recommended_items = recommended_items and shopping_cart.cart_settings.enable_recommendations %}
