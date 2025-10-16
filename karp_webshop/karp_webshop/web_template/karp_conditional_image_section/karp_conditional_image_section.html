@@ -3,7 +3,7 @@
 {# --- Begin: Section Embed Web Template --- #}
 
 <!-- container must have an id so JS can show/hide it -->
-<div id="embed-section-wrapper" data-condition_api="{{ condition_api or '' }}" style="display:none;">
+<div class="embed-section-wrapper" data-condition_api="{{ condition_api or '' }}" style="display:none;">
   <div class="section-with-image {{ 'align-center' if align == 'Center' else '' }}">
 	<h2 class="section-title">{{ _(title) }}</h2>
 	{%- if subtitle -%}
@@ -23,42 +23,48 @@
 
 <script>
 frappe.ready(function() {
+  // Prefer class-based wrappers (recommended). Fallback to attribute selector if needed.
+  let wrappers = Array.from(document.querySelectorAll('.embed-section-wrapper'));
 
-  let hse = localStorage.getItem("hse");
-  if(hse) {
-    document.getElementById('embed-section-wrapper').style.display = '';
-    return;
-  }
-  // call the server method to check the flag
-  const wrapper = document.querySelector('#embed-section-wrapper');
-  const api = wrapper.dataset.condition_api;
-  
-  frappe.call({
-    method: api,
-    callback: function(r) {
-      try {
-        if (r.message && r.message.show) {
-          // show the embed section
-          document.getElementById('embed-section-wrapper').style.display = '';
-          localStorage.setItem("hse", true);
-        } else {
-          // remove element to avoid empty space
-          var el = document.getElementById('embed-section-wrapper');
-          if (el && el.parentNode) el.parentNode.removeChild(el);
-        }
-      } catch (e) {
-        // on error just remove the element (safer)
-        var el = document.getElementById('embed-section-wrapper');
-        if (el && el.parentNode) el.parentNode.removeChild(el);
-      }
-    },
-    error: function() {
-      // on request error remove placeholder
-      var el = document.getElementById('embed-section-wrapper');
-      if (el && el.parentNode) el.parentNode.removeChild(el);
+  if (!wrappers.length) return;
+
+  wrappers.forEach(function(wrapper) {
+    // read API endpoint from data attribute (safe fallback to empty string)
+    const api = (wrapper.dataset && (wrapper.dataset.conditionApi || wrapper.dataset.condition_api)) || '';
+
+    // if no API specified, remove placeholder to avoid blank space
+    if (!api) {
+      wrapper.remove();
+      return;
     }
+
+    // call the api for this particular wrapper
+    frappe.call({
+      method: api,
+      // optional: you can pass args if needed (e.g. campaign tokens)
+      // args: { ... },
+
+      callback: function(r) {
+        try {
+          if (r && r.message && r.message.show) {
+            // show only this wrapper
+            wrapper.style.display = '';
+          } else {
+            // remove this wrapper to avoid empty space
+            if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+          }
+        } catch (e) {
+          // on error remove this wrapper (safer)
+          if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+        }
+      },
+
+      error: function() {
+        // on request error remove this wrapper
+        if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+      }
+    });
   });
 });
 </script>
-
 {# --- End: Section Embed Web Template --- #}
