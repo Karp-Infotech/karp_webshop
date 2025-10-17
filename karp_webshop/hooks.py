@@ -289,7 +289,10 @@ web_include_js = [
     "/assets/karp_webshop/js/guest_session.js"
 ]
 
-web_include_css = "/assets/karp_webshop/css/karp_webshop.css"
+web_include_css = [
+                "/assets/karp_webshop/css/karp_webshop.css",
+                "/assets/karp_webshop/css/mobile_filter.css"
+]
 
 web_template_overrides = {
     "Item Card Group": "karp_webshop/webshop/webshop/web_template/item_card_group/item_card_group.html"

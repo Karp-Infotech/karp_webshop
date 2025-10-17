@@ -2,6 +2,7 @@
 
 <script defer src="/assets/karp_webshop/js/karp_shopping_cart.js"></script>
 
+
 {% from "webshop/templates/includes/macros.html" import attribute_filter_section, field_filter_section, discount_range_filters %}
 {% extends "templates/web.html" %}
 
@@ -13,10 +14,38 @@
 {% block page_content %}
 <input type="hidden" id="pc_field_filters" value='{{ field_filter | tojson | safe }}'>
 <div class="row">
+
+
 	<!-- Items section -->
 	<div id="product-listing" class="col-12 order-2 col-md-9 order-md-2 item-card-group-section">
 		<!-- Rendered via JS -->
 	</div>
+
+		<!-- Mobile Filter Button (visible on small screens only) -->
+<div class="d-md-none mb-3">
+  <button id="mobile-filter-btn" class="btn btn-outline-secondary" type="button" aria-label="Open filters">
+    <svg style="width:18px;height:18px;vertical-align:middle;" aria-hidden="true"><use href="#icon-filter"></use></svg>
+    <span style="margin-left:8px;">{{ _('Filters') }}</span>
+  </button>
+</div>
+
+<!-- Mobile Off-canvas Drawer -->
+<div id="mobile-filter-drawer" class="mobile-filter-drawer" aria-hidden="true" style="display:none;">
+  <div class="mobile-filter-backdrop" role="button" tabindex="0" aria-label="Close filters"></div>
+  <div class="mobile-filter-panel" role="dialog" aria-modal="true">
+    <div class="mobile-filter-header d-flex justify-content-between align-items-center mb-3">
+      <button id="mobile-filter-close" class="btn btn-sm btn-link" aria-label="Close filters">Close</button>
+    </div>
+    <div class="mobile-filter-body">
+      <!-- cloned filters are injected here -->
+    </div>
+    <div class="mobile-filter-footer d-flex justify-content-between mt-3">
+      <button id="mobile-filter-clear" class="btn btn-light">{{ _('Clear') }}</button>
+      <button id="mobile-filter-apply" class="btn btn-primary">{{ _('Apply') }}</button>
+    </div>
+  </div>
+</div>
+
 
 	<!-- Filters Section -->
 	<div class="col-12 order-1 col-md-3 order-md-1">
@@ -53,5 +82,186 @@
 	});
 </script>
 
+<script>
+frappe.ready(function() {
+  const desktopFiltersSelector = '#product-filters';   // your filters wrapper
+  const mobileBtn = document.getElementById('mobile-filter-btn');
+  const drawer = document.getElementById('mobile-filter-drawer');
+  const drawerBody = drawer && drawer.querySelector('.mobile-filter-body');
+  const closeBtn = document.getElementById('mobile-filter-close');
+  const applyBtn = document.getElementById('mobile-filter-apply');
+  const clearBtn = document.getElementById('mobile-filter-clear');
+  const backdrop = drawer && drawer.querySelector('.mobile-filter-backdrop');
+
+  if (!mobileBtn || !drawer || !drawerBody) return;
+
+  // Utility: remove id attributes from cloned subtree
+  function removeIds(node) {
+    if (!node || !node.querySelectorAll) return;
+    node.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+	node.removeAttribute('id')
+  }
+
+  // copy checked state from desktop -> clone
+  function syncDesktopToClone(clone) {
+	
+    // For each checkbox in clone, find corresponding desktop checkbox by data-filter-name & data-filter-value
+    const cloneInputs = clone.querySelectorAll('input[type="checkbox"], input[type="radio"], select');
+	
+    cloneInputs.forEach(ci => {
+      const name = ci.getAttribute('data-filter-name');
+      const value = ci.getAttribute('data-filter-value');
+      if (!name) return;
+
+      // find desktop input(s)
+      // desktop inputs use same attributes in your macro: data-filter-name & data-filter-value
+      const desktopSelector = `[data-filter-name="${name}"][data-filter-value="${value}"]`;
+      const desktopInput = document.querySelector(desktopSelector);
+      if (desktopInput) {
+        // set checked / value according to desktop
+        if (desktopInput.type === 'checkbox' || desktopInput.type === 'radio') {
+          ci.checked = desktopInput.checked;
+        } else {
+          ci.value = desktopInput.value;
+        }
+      }
+    });
+  }
+
+  // Remove unwanted elements
+  function cleanClone(clone) {
+	if (clone && window.innerWidth < 768) {
+		clone.classList.remove('collapse');
+		// optionally ensure it's visible on mobile
+		clone.classList.remove('d-none');
+	}
+	const desktopFilterTitle = clone.querySelector('.filters-title');
+	if (desktopFilterTitle) desktopFilterTitle.remove();
+	const desktopClearFilter = clone.querySelector('.clear-filters');
+	if (desktopClearFilter) desktopClearFilter.remove();
+  }
+
+  // copy checked state from clone -> desktop and trigger change events so site's filter logic runs
+  function syncCloneToDesktop(clone) {
+    const cloneInputs = clone.querySelectorAll('input[type="checkbox"], input[type="radio"], select');
+	const desktopFilters = document.querySelector(desktopFiltersSelector);
+    cloneInputs.forEach(ci => {
+      const name = ci.getAttribute('data-filter-name');
+      const value = ci.getAttribute('data-filter-value');
+      if (!name) return;
+
+      const desktopSelector = `[data-filter-name="${name}"][data-filter-value="${value}"]`;
+      const desktopInput = desktopFilters.querySelector(desktopSelector);
+      if (desktopInput) {
+        if (desktopInput.type === 'checkbox' || desktopInput.type === 'radio') {
+          if (desktopInput.checked !== ci.checked) {
+            desktopInput.checked = ci.checked;
+            desktopInput.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        } else {
+          if (desktopInput.value !== ci.value) {
+            desktopInput.value = ci.value;
+            desktopInput.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }
+      }
+    });
+  }
+
+  function openDrawer() {
+    // find desktop filters
+    const desktopFilters = document.querySelector(desktopFiltersSelector);
+    if (!desktopFilters) {
+      console.warn('No desktop filters found for selector:', desktopFiltersSelector);
+      return;
+    }
+
+    // deep clone to avoid moving DOM (keeps desktop intact)
+    const clone = desktopFilters.cloneNode(true);
+
+	clone.classList.add('mobile-clone');
+
+    // strip ids to avoid duplicates and invalid HTML
+    removeIds(clone);
+
+    // sync checked states from desktop -> clone
+    syncDesktopToClone(clone);
+
+	cleanClone(clone);
+
+    // inject clone
+    drawerBody.innerHTML = '';
+    drawerBody.appendChild(clone);
+	
+
+
+    // show drawer
+    drawer.style.display = 'block';
+    drawer.setAttribute('aria-hidden', 'false');
+    document.documentElement.classList.add('no-scroll');
+
+    // re-enable any interactive widgets inside clone if needed (e.g. search inputs)
+    // For example: attach any live-search handlers if present
+  }
+
+  function closeDrawer() {
+    drawer.style.display = 'none';
+    drawer.setAttribute('aria-hidden', 'true');
+    drawerBody.innerHTML = '';
+    document.documentElement.classList.remove('no-scroll');
+  }
+
+  function applyFilters() {
+    const clone = drawerBody.querySelector(desktopFiltersSelector) || drawerBody.firstElementChild;
+    if (!drawerBody) {
+      closeDrawer();
+      return;
+    }
+
+    // copy state back to desktop and trigger change events so existing handlers run
+    syncCloneToDesktop(drawerBody);
+
+    // If your site has a function that applies filters (e.g., refresh via AJAX), call it:
+    // if (typeof applyFilters === 'function') { applyFilters(); }
+    // Otherwise, the change events should have triggered the site's filter logic.
+    closeDrawer();
+  }
+
+  function clearFilters() {
+    // Uncheck/clear all inputs inside clone and desktop
+    // Desktop
+    document.querySelectorAll(desktopFiltersSelector + ' input[type="checkbox"], ' + desktopFiltersSelector + ' input[type="radio"]').forEach(el => {
+      if (el.checked) {
+        el.checked = false;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+    document.querySelectorAll(desktopFiltersSelector + ' select').forEach(el => {
+      el.value = '';
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    // Clone (if present)
+    drawerBody.querySelectorAll('input[type="checkbox"], input[type="radio"], select').forEach(el => {
+      if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+      else el.value = '';
+    });
+  }
+
+  // event wiring
+  mobileBtn.addEventListener('click', openDrawer);
+  closeBtn.addEventListener('click', closeDrawer);
+  backdrop.addEventListener('click', closeDrawer);
+  applyBtn.addEventListener('click', function(e) { e.preventDefault(); applyFilters(); });
+  clearBtn.addEventListener('click', function(e) { e.preventDefault(); clearFilters(); });
+
+  // Esc closes drawer
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && drawer.style.display === 'block') closeDrawer();
+  });
+});
+</script>
+
 {% endblock %}
+
 

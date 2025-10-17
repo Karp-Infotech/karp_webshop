@@ -1,0 +1,69 @@
+
+	/* Scope to the mobile cloned drawer only */
+.mobile-filter-panel .mobile-clone .filter-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns */
+  gap: 0.5rem;            /* space between items */
+  align-items: start;
+}
+
+/* Make each option a block and ensure label wraps nicely */
+.mobile-filter-panel .mobile-clone .filter-lookup-wrapper {
+  display: block;               /* stack contents vertically inside each cell */
+  padding: 0.45rem 0.5rem;
+  border-radius: 6px;
+  background: transparent;
+  transition: background .12s ease;
+}
+
+.mobile-filter-panel .mobile-clone .filter-lookup-wrapper:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+/* Keep checkbox on left, label to right with good spacing */
+.mobile-filter-panel .mobile-clone .filter-lookup-wrapper label {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  cursor: pointer;
+}
+
+.mobile-filter-panel .mobile-clone input[type="checkbox"],
+.mobile-filter-panel .mobile-clone input[type="radio"] {
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 20px;
+  margin: 0;
+}
+
+/* Text styling inside each grid cell */
+.mobile-filter-panel .mobile-clone .label-area {
+  font-size: 0.95rem;
+  line-height: 1.2;
+  color: #2b3a42;
+  display: inline-block;
+  white-space: normal; /* allow wrapping */
+}
+
+/* Responsive fallbacks */
+@media (max-width: 420px) {
+  .mobile-filter-panel .mobile-clone .filter-options {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on small phones */
+  }
+}
+@media (max-width: 320px) {
+  .mobile-filter-panel .mobile-clone .filter-options {
+    grid-template-columns: 1fr; /* 1 column on very small screens */
+  }
+}
+
+/* Optional: make long lists scroll nicely within each filter-block */
+.mobile-filter-panel .mobile-clone .filter-block .filter-options {
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 0.25rem; /* for scrollbar space */
+}
+
+.mobile-filter-drawer {
+  margin-bottom: 1.5rem; /* adds space after drawer */
+}
