@@ -1,12 +1,16 @@
+<style>
+	/* Applies only on mobile devices */
+	
+	.user-msg-indicator {
+		display: inline-block;
+		margin-top: 12px;
+		padding: 6px 10px; /* optional, for nicer spacing inside the pill */
+		color: green;
+	}
+	
+</style>
 {% extends "templates/web.html" %}
 {% from "webshop/templates/includes/order/order_macros.html" import item_name_and_description %}
-
-{% block breadcrumbs %}
-	{% include "templates/includes/breadcrumbs.html" %}
-{% endblock %}
-
-
-
 
 
 {% block title %}
@@ -15,12 +19,6 @@
 
 {% block header %}
 	<h3 class="m-0">{{ doc.name }}</h3> 
-	{% if doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0 %}
-		<span class="indicator-pill orange">
-			{{ user_msg }}
-		</span>
-	{% endif %}
-
 {% endblock %}
 
 {% block header_actions %}
@@ -86,7 +84,7 @@
 					</span>
 				{% endif %}
 			</div>
-			<div class="text-right col-2">
+			<!--<div class="text-right col-2">
 				{%- set party_name = doc.supplier_name if doc.doctype in ['Supplier Quotation', 'Purchase Invoice', 'Purchase
 				Order'] else frappe.db.get_value("Customer", doc.customer_name, "customer_name") %}
 				<b>{{ party_name }}</b>
@@ -95,11 +93,17 @@
 					<br>
 					{{ doc.contact_display }}
 				{% endif %}
-			</div>
+			</div>-->
 		</div>
 
 		{% if doc._header %}
 			{{ doc._header }}
+		{% endif %}
+
+		{% if doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0 %}
+			<span class="indicator-pill user-msg-indicator">
+				{{ user_msg }} 
+			</span>
 		{% endif %}
 
 		<div class="order-container mt-4">
@@ -220,3 +224,5 @@
 		}
 	</script>
 {% endblock %}
+
+
