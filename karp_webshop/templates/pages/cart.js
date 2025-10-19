@@ -22,7 +22,21 @@ $.extend(shopping_cart, {
 
 	bind_place_order: function() {
 		$(".btn-place-order").on("click", function() {
-			shopping_cart.place_order(this);
+			const shippingAddressEl = document.querySelector('[data-fieldname="shipping_address_name"]');
+
+			if (!shippingAddressEl) {		
+				// Find the "Add a new address" button
+				const newAddressBtn = document.querySelector('.btn-new-address');
+
+				if (newAddressBtn) {
+					// Simulate a user click
+					newAddressBtn.click();
+				} else {
+					console.warn("⚠️ No element found with class 'btn-new-address'.");
+				}
+			} else {
+				shopping_cart.place_order(this);
+			}
 		});
 	},
 

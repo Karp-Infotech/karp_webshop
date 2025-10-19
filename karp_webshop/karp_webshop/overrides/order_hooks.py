@@ -24,7 +24,7 @@ def update_guest_customer_info(doc, method):
     )
 
     if not linked_contacts:
-        print("Not Contact Found")
+        print("No Contact Found")
         return  # no contacts linked, skip
 
     # Step 2: Find guest contact (user_id empty and email_id="Guest")
@@ -32,13 +32,12 @@ def update_guest_customer_info(doc, method):
     for lc in linked_contacts:
         contact = frappe.get_doc("Contact", lc.contact_name)
         if not contact.user:
-            print ("Found Guest Contact")
+            print ("Found Guest Contact")   
             guest_contact = contact
             break
 
     if not guest_contact:
         print("No Guest Contact")
-  
         return  # no guest contact found
 
     # Step 3: Update guest contact info from shipping address
@@ -47,11 +46,14 @@ def update_guest_customer_info(doc, method):
 
         # Update name
         if getattr(address, "address_title", None):
+            if(guest_contact.first_name == address.address_title):
+                # Don't need to copy as the is a repeat guest customer.
+                return
             guest_contact.first_name = address.address_title
             customer.customer_name = address.address_title
 
-        guest_contact.phone_nos = []   # Clear Contact Phone table
-        guest_contact.email_ids = []    
+        #guest_contact.phone_nos = []   # Clear Contact Phone table
+        #guest_contact.email_ids = []    
         # Update phone
         if getattr(address, "phone", None):
             guest_contact.append("phone_nos", {
