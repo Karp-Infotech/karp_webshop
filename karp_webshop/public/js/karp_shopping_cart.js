@@ -116,7 +116,7 @@ $.extend(shopping_cart, {
 		var $badge = $cart.find("#cart-count");
 
 		if(parseInt(cart_count) === 0 || cart_count === undefined) {
-			$cart.css("display", "none");
+
 			$(".cart-tax-items").hide();
 			$(".btn-place-order").hide();
 			$(".cart-payment-addresses").hide();

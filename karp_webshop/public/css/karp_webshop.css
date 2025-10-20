@@ -5,3 +5,16 @@
     line-height: 20px;
     color: #383838;
 }
+
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #fff;
+    z-index: 1000;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+.page-content-wrapper {
+    padding-top: 40px;
+}

@@ -1,3 +1,4 @@
+
 <style>
 	.block-right {
 		margin-left: auto;
@@ -5,6 +6,7 @@
 		display: block;
 		width: fit-content; /* optional */
 	}
+
 </style>
 <nav class="navbar navbar-light navbar-expand-lg">
 	<div class="container">
@@ -17,13 +19,16 @@
 				<span>{{ (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
 			{%- endif -%}
 		</a>
-		<div class="shopping-cart cart-icon hidden block-right">
-			<a class="nav-link" href="/cart">
-				<svg class="icon icon-lg">
-					<use href="#icon-assets"></use>
-				</svg>
-				<span class="badge badge-primary shopping-badge" id="cart-count"></span>
-			</a>
+		
+		<div id="mobile-cart-wrapper" class="block-right">
+			<div id="cart-icon" class="shopping-cart cart-icon">
+				<a class="nav-link" href="/cart">
+					<svg class="icon icon-lg">
+						<use href="#icon-assets"></use>
+					</svg>
+					<span class="badge badge-primary shopping-badge" id="cart-count"></span>
+				</a>
+			</div>
 		</div>
 		<button class="navbar-toggler" type="button"
 			data-toggle="collapse"
@@ -41,8 +46,27 @@
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
 			{% include "templates/includes/navbar/navbar_items.html" %}
 		</div>
+		<div id="desktop-cart-wrapper">
+			
+		</div>	
 		<div class="form-group mb-0 hide" id="language-switcher">
 			<select class="form-control"></select>
 		</div>
 	</div>
 </nav>
+
+<script>
+  function repositionCartIcon() {
+    const cart_icon = document.getElementById('cart-icon');
+    if (window.innerWidth < 768) {
+      document.getElementById('mobile-cart-wrapper').appendChild(cart_icon);
+    } else {
+      document.getElementById('desktop-cart-wrapper').appendChild(cart_icon);
+    }
+  }
+
+  // Run on load and on resize
+  window.addEventListener('load', repositionCartIcon);
+  window.addEventListener('resize', repositionCartIcon);
+</script>
+
