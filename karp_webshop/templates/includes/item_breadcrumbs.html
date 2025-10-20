@@ -1,0 +1,28 @@
+
+<div class="breadcrumb-container container">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+                {% set ref = frappe.form_dict.ref %}
+                {% set collection = frappe.db.get_value("Product Collection", {"route": ref.lstrip('/')}, ["title", "route"], as_dict=True) %}
+
+                <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
+					<a itemprop="item" href="/">
+						<span itemprop="name">Home</span>
+					</a>
+				</li>
+
+				<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
+					<a itemprop="item" href="/pc/{{ collection.route }}">
+						<span itemprop="name">{{ collection.title }}</span>
+					</a>
+				</li>
+
+			<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item active" aria-current="page">
+				<span itemprop="item">
+					<span itemprop="name">{{ _(title) }}</span>
+					<meta itemprop="position" content="{{ count }}"/>
+				</span>
+			</li>
+		</ol>
+	</nav>
+</div>

@@ -50,6 +50,61 @@ class KarpProductGrid extends webshop.ProductGrid {
 		price_html += `</div>`;
 		return price_html;
 	}
+
+	get_image_html(item, title) {
+		let image = item.website_image;
+
+		const productUrl = this.get_product_url(item);
+
+		if (image) {
+			return `
+				<div class="card-img-container">
+					<a href="/${ productUrl }" style="text-decoration: none;">
+						<img itemprop="image" class="card-img" src="${ image }" alt="${ title }">
+					</a>
+				</div>
+			`;
+		} else {
+			return `
+				<div class="card-img-container">
+					<a href="/${ productUrl}" style="text-decoration: none;">
+						<div class="card-img-top no-image">
+							${ frappe.get_abbr(title) }
+						</div>
+					</a>
+				</div>
+			`;
+		}
+	}
+
+	get_title(item, title) {
+		const productUrl = this.get_product_url(item);
+		let title_html = `
+			<a href="/${ productUrl }">
+				<div class="product-title" itemprop="name">
+					${ title || '' }
+				</div>
+			</a>
+		`;
+		return title_html;
+	}
+
+	get_product_url(item) {
+		let base = item.route || '#';
+		let ref = window.location.pathname; // e.g. /pc/men-eg
+
+		// Remove the '/pc/' prefix if it exists
+		if (ref.startsWith('/pc/')) {
+			ref = ref.replace('/pc/', '');
+		} else {
+			// Remove leading slash if any
+			ref = ref.replace(/^\//, '');
+		}
+
+		let query = `?ref=${encodeURIComponent(ref)}`;
+		return `${base}${query}`;
+	}
+
 };
 
 // Assign the new class to webshop
