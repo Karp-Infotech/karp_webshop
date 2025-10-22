@@ -1,0 +1,269 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Minimal Client VTO Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Roboto, "Segoe UI", sans-serif; margin: 12px; background:#f5f6f8; color:#111; }
+    h1 { font-size:18px; margin:0 0 8px 0; }
+    .card { background:white; border-radius:10px; padding:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); max-width:720px; margin:auto; }
+    #container { position: relative; width: 640px; max-width:100%; margin:12px auto; }
+    video, canvas { position: absolute; left:0; top:0; width:100%; height:auto; border-radius:8px; }
+    video { transform: scaleX(-1); -webkit-transform: scaleX(-1);} /* mirror for user */
+    #controls { display:flex; gap:8px; margin-top:8px; align-items:center; justify-content:center; }
+    button { padding:8px 12px; border-radius:6px; border:1px solid #ddd; background:white; cursor:pointer; }
+    #status { font-size:12px; color:#666; text-align:center; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Minimal Client-Side Virtual Try-On (MediaPipe)</h1>
+    <div id="container">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="overlay"></canvas>
+    </div>
+
+    <div id="controls">
+      <button id="captureBtn">Take Photo</button>
+      <button id="toggleMirror">Toggle Mirror</button>
+      <button id="switchCam">Switch Camera</button>
+    </div>
+    <div id="status">Status: <span id="statustxt">Initializing…</span></div>
+  </div>
+
+  <!-- MediaPipe FaceMesh via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+<script>
+(async function(){
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('overlay');
+  const ctx = canvas.getContext('2d');
+  const status = document.getElementById('statustxt');
+  const captureBtn = document.getElementById('captureBtn');
+  const toggleMirrorBtn = document.getElementById('toggleMirror');
+  const switchCamBtn = document.getElementById('switchCam');
+
+  // ---- Embedded simple SVG "glasses" image as data URL (transparent background) ----
+  // Replace this with your PNG/PNG asset path for real frames.
+  const frameSvg = `
+  <svg xmlns='http://www.w3.org/2000/svg' width='800' height='300'>
+    <g transform='translate(0,0)'>
+      <defs>
+        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="8" result="b"/>
+          <feOffset in="b" dx="0" dy="4"/>
+          <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <g transform='translate(100,40)' filter='url(#shadow)'>
+        <rect x="0" y="70" rx="36" ry="36" width="220" height="90" fill="rgba(0,0,0,0.06)"/>
+        <rect x="280" y="70" rx="36" ry="36" width="220" height="90" fill="rgba(0,0,0,0.06)"/>
+        <path d="M220 115 q40 10 60 0" stroke="rgba(0,0,0,0.3)" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <!-- left lens rim -->
+        <ellipse cx="110" cy="115" rx="95" ry="50" fill="none" stroke="#111" stroke-width="6"/>
+        <!-- right lens rim -->
+        <ellipse cx="390" cy="115" rx="95" ry="50" fill="none" stroke="#111" stroke-width="6"/>
+      </g>
+    </g>
+  </svg>`;
+const frameImg = new Image();
+frameImg.src = "https://www.klearkut.com/static/imgs/assets/vto/VTO_Demo.png";
+
+  // ---- Smoothing helper (simple linear interpolation) ----
+  function lerp(a,b,t){ return a + (b-a)*t; }
+
+  // State for smoothing
+  const smooth = { tx:0, ty:0, rot:0, scale:1 };
+  const smoothFactor = 0.22; // lower -> more smoothing; adjust between 0.12..0.4
+
+  // camera selection helper
+  let usingFront = true;
+  let camList = [];
+  let currentCamIndex = 0;
+
+  // Prepare MediaPipe FaceMesh
+  const faceMesh = new FaceMesh({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+  });
+  faceMesh.setOptions({
+    maxNumFaces: 1,
+    refineLandmarks: true,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.5
+  });
+
+  let latestLandmarks = null;
+  faceMesh.onResults((results) => {
+    // draw mirrored video
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    // Draw mirrored video image onto canvas
+    ctx.save();
+    ctx.scale(-1,1);
+    ctx.drawImage(results.image, -canvas.width, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+      latestLandmarks = results.multiFaceLandmarks[0];
+      status.textContent = 'Face detected';
+      drawGlassesOnLandmarks(latestLandmarks);
+    } else {
+      latestLandmarks = null;
+      status.textContent = 'No face detected';
+    }
+  });
+
+  // Use MediaPipe Camera helper
+  let mpCamera = null;
+  async function startCamera(deviceId = undefined) {
+    if (mpCamera) mpCamera.stop();
+    const constraints = {
+      video: {
+        width: 1280,
+        height: 720,
+        facingMode: deviceId ? undefined : (usingFront ? 'user' : 'environment'),
+        deviceId: deviceId ? { exact: deviceId } : undefined
+      },
+      audio: false
+    };
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = stream;
+      // list cameras
+      const cams = await navigator.mediaDevices.enumerateDevices();
+      camList = cams.filter(d => d.kind === 'videoinput');
+      // find the index of current device if provided
+      if (deviceId) {
+        const index = camList.findIndex(c => c.deviceId === deviceId);
+        if (index >= 0) currentCamIndex = index;
+      }
+      mpCamera = new Camera(video, {
+        onFrame: async () => { await faceMesh.send({ image: video }); },
+        width: 1280, height: 720
+      });
+      mpCamera.start();
+      status.textContent = 'Camera started';
+    } catch (err) {
+      console.error(err);
+      status.textContent = 'Camera error: ' + (err.message || err);
+      alert('Camera permission required. If blocked, allow camera for this site and reload.');
+    }
+  }
+
+  // compute pixel coords from normalized landmark
+  function toCanvas(p, w, h){ return { x: p.x * w, y: p.y * h }; }
+
+  // draw glasses overlay using landmarks
+  function drawGlassesOnLandmarks(lm) {
+    // Key landmarks (MediaPipe indices)
+    const leftEye = lm[33], rightEye = lm[263], nose = lm[1];
+    const leftTemple = lm[127], rightTemple = lm[356];
+
+
+ 
+
+
+    // convert to pixel coords on canvas
+    const lw = canvas.width, lh = canvas.height;
+    const L = toCanvas(leftEye, lw, lh), R = toCanvas(rightEye, lw, lh), N = toCanvas(nose, lw, lh);
+    const LT = toCanvas(leftTemple, lw, lh), RT = toCanvas(rightTemple, lw, lh);
+
+    // estimate face width using temple points (stable)
+    const faceWidth = Math.hypot(RT.x - LT.x, RT.y - LT.y) || Math.hypot(R.x - L.x, R.y - L.y);
+
+    // angle of eyes for rotation
+    const angle = Math.atan2(R.y - L.y, R.x - L.x);
+
+    // -----------------------
+    // Better anchor calculation
+    // -----------------------
+    // 1) eye center (midpoint between left & right eye)
+    const eyeCenterX = (L.x + R.x) / 2;
+    const eyeCenterY = (L.y + R.y) / 2;
+
+    // 2) nose tip y (lower nose)
+    const noseTipY = N.y;
+
+    // 3) weighted anchor y between eye center and nose tip (closer to eye center)
+    //    tweak weights (0.6/0.4) if you want it higher or lower
+    const anchorX = eyeCenterX;
+    const anchorY = eyeCenterY * 0.6 + noseTipY * 0.4;
+
+    // 4) manual asset-specific vertical offset (pixels). If frames sit too low, use negative value.
+    //    You can tune this per-asset. Start with -8 .. +16 pixels depending on asset.
+    const ASSET_VERTICAL_OFFSET = -10; // tweak this to raise/lower the glasses
+    const ASSET_HORIZONTAL_OFFSET = window.ASSET_HORIZONTAL_OFFSET ?? -5; // tweak this
+    const finalX = anchorX;
+    const finalY = anchorY + ASSET_VERTICAL_OFFSET;
+
+    // desired width for the frame image: tune factor depending on your frame asset design
+    const assetNativeWidth = frameImg.width || 800; // fallback if not loaded
+    const targetWidth = faceWidth * 1.6; // tweak (1.4..1.8) depending on asset anchor
+    const scale = targetWidth / assetNativeWidth;
+
+    // smoothing (lerp)
+    smooth.tx = lerp(smooth.tx, finalX, smoothFactor);
+    smooth.ty = lerp(smooth.ty, finalY, smoothFactor);
+    smooth.rot = lerp(smooth.rot, angle, smoothFactor);
+    smooth.scale = lerp(smooth.scale, scale, smoothFactor);
+
+    // draw the frame (mirrored coordinates)
+    ctx.save();
+    ctx.translate(canvas.width - (smooth.tx + ASSET_HORIZONTAL_OFFSET), smooth.ty);
+
+    ctx.rotate(-smooth.rot);
+    const w = (assetNativeWidth || frameImg.width) * smooth.scale;
+    const h = (frameImg.height || 300) * smooth.scale;
+    // vertical anchor tweak: -0.45 worked earlier; you may tweak this per asset
+    ctx.drawImage(frameImg, -w * 0.5, -h * 0.45, w, h);
+    ctx.restore();
+    }
+
+  // basic toggle mirror: flips both video display and canvas drawing logic
+  let mirrored = true;
+  toggleMirrorBtn.addEventListener('click', () => {
+    mirrored = !mirrored;
+    if (mirrored) { video.style.transform = 'scaleX(-1)'; } else { video.style.transform = ''; }
+  });
+
+  // switch camera (front/back) if multiple cameras available
+  switchCamBtn.addEventListener('click', async () => {
+    if (!camList.length) {
+      const cams = await navigator.mediaDevices.enumerateDevices();
+      camList = cams.filter(d => d.kind === 'videoinput');
+    }
+    if (camList.length <= 1) { alert('No other camera found'); return; }
+    currentCamIndex = (currentCamIndex + 1) % camList.length;
+    const dev = camList[currentCamIndex];
+    usingFront = false;
+    await startCamera(dev.deviceId);
+  });
+
+  // Capture button - open snapshot in new tab
+  captureBtn.addEventListener('click', () => {
+    const dataUrl = canvas.toDataURL('image/png');
+    const w = window.open('');
+    w.document.body.style.margin = 0;
+    const img = new Image();
+    img.src = dataUrl;
+    w.document.body.appendChild(img);
+  });
+
+  // Resize canvas to match video display size
+  function fitCanvas() {
+    const rect = video.getBoundingClientRect();
+    canvas.width = video.videoWidth || rect.width;
+    canvas.height = video.videoHeight || (rect.width * 3/4);
+  }
+  video.addEventListener('loadedmetadata', () => {
+    fitCanvas();
+  });
+
+  // Start camera
+  await startCamera();
+})();
+</script>
+</body>
+</html>
