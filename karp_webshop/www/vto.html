@@ -54,11 +54,11 @@
       <button id="switchCam">Switch Camera</button>
 
       <label style="margin-left:8px;">Vertical offset:
-        <input id="offY" type="range" min="-200" max="200" value="-60" step="1">
+        <input id="offY" type="range" min="-200" max="200" value="5" step="1">
       </label>
 
       <label>Horizontal offset:
-        <input id="offX" type="range" min="-200" max="200" value="-10" step="1">
+        <input id="offX" type="range" min="-200" max="200" value="0" step="1">
       </label>
 
       <label>Vertical stretch:
@@ -233,7 +233,7 @@
 
     // ---- compute native sizes and scales ----
     const nativeAssetWidth = frameMeta.asset_native_width_px || frameImg.naturalWidth || frameImg.width || 1600;
-    const nativeAssetHeight = (frameImg.naturalHeight && frameImg.naturalHeight>0) ? frameImg.naturalHeight : Math.round(nativeAssetWidth * 0.4);
+    const nativeAssetHeight = Math.round(nativeAssetWidth * 0.6);
 
     const scaleY = smooth.scale * verticalStretch;
 
