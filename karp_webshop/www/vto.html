@@ -2,34 +2,78 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Minimal Client VTO Demo</title>
+  <title>Minimal Client VTO Demo — Real Scale (PD)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body { font-family: system-ui, -apple-system, Roboto, "Segoe UI", sans-serif; margin: 12px; background:#f5f6f8; color:#111; }
     h1 { font-size:18px; margin:0 0 8px 0; }
-    .card { background:white; border-radius:10px; padding:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); max-width:720px; margin:auto; }
-    #container { position: relative; width: 640px; max-width:100%; margin:12px auto; }
-    video, canvas { position: absolute; left:0; top:0; width:100%; height:auto; border-radius:8px; }
+    .card { background:white; border-radius:10px; padding:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); max-width:920px; margin:auto; }
+    #container { position: relative; width: 720px; max-width:100%; margin:12px auto; }
+    video, canvas { position:absolute; left:0; top:0; width:100%; height:auto; border-radius:8px; }
     video { transform: scaleX(-1); -webkit-transform: scaleX(-1);} /* mirror for user */
-    #controls { display:flex; gap:8px; margin-top:8px; align-items:center; justify-content:center; }
+    #controls { display:flex; gap:8px; margin-top:8px; align-items:center; justify-content:center; flex-wrap:wrap; }
     button { padding:8px 12px; border-radius:6px; border:1px solid #ddd; background:white; cursor:pointer; }
+    label { font-size:13px; color:#333; }
+    input[type="range"] { width:160px; vertical-align:middle; }
+    input[type="number"] { width:80px; padding:6px; border-radius:6px; border:1px solid #ddd; }
     #status { font-size:12px; color:#666; text-align:center; margin-top:6px; }
+    .row { display:flex; gap:8px; align-items:center; justify-content:center; margin-top:8px; flex-wrap:wrap; }
+    .small { font-size:12px; color:#666; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Minimal Client-Side Virtual Try-On (MediaPipe)</h1>
+    <h1>Minimal Client VTO Demo — Real Scale (PD)</h1>
+
     <div id="container">
       <video id="video" autoplay playsinline muted></video>
       <canvas id="overlay"></canvas>
+    </div>
+
+    <div class="row" style="justify-content:space-between;">
+      <div>
+        <label>Enter PD (mm):</label>
+        <input id="pdInput" type="number" min="40" max="80" step="0.5" placeholder="eg. 63">
+        <span class="small"> (leave blank to use default 63 mm)</span>
+      </div>
+
+      <div>
+        <label>Frame width (mm):</label>
+        <input id="frameWidth" type="number" min="80" max="160" value="140" step="1"> <span class="small">frame real width</span>
+      </div>
+
+      <div>
+        <label>Asset native width (px):</label>
+        <input id="assetWidth" type="number" min="200" max="4000" value="1600" step="10"> <span class="small">image px width</span>
+      </div>
     </div>
 
     <div id="controls">
       <button id="captureBtn">Take Photo</button>
       <button id="toggleMirror">Toggle Mirror</button>
       <button id="switchCam">Switch Camera</button>
+
+      <label style="margin-left:8px;">Vertical offset:
+        <input id="offY" type="range" min="-200" max="200" value="-60" step="1">
+      </label>
+
+      <label>Horizontal offset:
+        <input id="offX" type="range" min="-200" max="200" value="-10" step="1">
+      </label>
+
+      <label>Vertical stretch:
+        <input id="vStretch" type="range" min="0.6" max="1.6" value="1.0" step="0.01">
+      </label>
+
+      <label>Debug:
+        <input id="dbg" type="checkbox" />
+      </label>
     </div>
+
     <div id="status">Status: <span id="statustxt">Initializing…</span></div>
+    <div class="small" style="text-align:center; margin-top:6px;">
+      Tip: for best fit, enter your pupillary distance (PD). If unknown, use default (63 mm) or calibrate via a credit card method.
+    </div>
   </div>
 
   <!-- MediaPipe FaceMesh via CDN -->
@@ -45,46 +89,33 @@
   const captureBtn = document.getElementById('captureBtn');
   const toggleMirrorBtn = document.getElementById('toggleMirror');
   const switchCamBtn = document.getElementById('switchCam');
+  const pdInput = document.getElementById('pdInput');
+  const frameWidthEl = document.getElementById('frameWidth');
+  const assetWidthEl = document.getElementById('assetWidth');
+  const offY = document.getElementById('offY');
+  const offX = document.getElementById('offX');
+  const vStretch = document.getElementById('vStretch');
+  const dbg = document.getElementById('dbg');
 
-  // ---- Embedded simple SVG "glasses" image as data URL (transparent background) ----
-  // Replace this with your PNG/PNG asset path for real frames.
-  const frameSvg = `
-  <svg xmlns='http://www.w3.org/2000/svg' width='800' height='300'>
-    <g transform='translate(0,0)'>
-      <defs>
-        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="8" result="b"/>
-          <feOffset in="b" dx="0" dy="4"/>
-          <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-      <g transform='translate(100,40)' filter='url(#shadow)'>
-        <rect x="0" y="70" rx="36" ry="36" width="220" height="90" fill="rgba(0,0,0,0.06)"/>
-        <rect x="280" y="70" rx="36" ry="36" width="220" height="90" fill="rgba(0,0,0,0.06)"/>
-        <path d="M220 115 q40 10 60 0" stroke="rgba(0,0,0,0.3)" stroke-width="8" fill="none" stroke-linecap="round"/>
-        <!-- left lens rim -->
-        <ellipse cx="110" cy="115" rx="95" ry="50" fill="none" stroke="#111" stroke-width="6"/>
-        <!-- right lens rim -->
-        <ellipse cx="390" cy="115" rx="95" ry="50" fill="none" stroke="#111" stroke-width="6"/>
-      </g>
-    </g>
-  </svg>`;
-const frameImg = new Image();
-frameImg.src = "https://www.klearkut.com/static/imgs/assets/vto/VTO_Demo.png";
+  // Frame image (use your webp/png link here; same-origin recommended)
+  const frameImg = new Image();
+  frameImg.crossOrigin = "anonymous";
+  frameImg.src = "http://ls-erp:8000/assets/vto/VTO_Demo.png"; // ensure same-origin or CORS-enabled
 
-  // ---- Smoothing helper (simple linear interpolation) ----
+  // frame metadata defaults (you can update per SKU)
+  let frameMeta = {
+    frame_width_mm: Number(frameWidthEl.value) || 140,
+    asset_native_width_px: Number(assetWidthEl.value) || 1600,
+    anchor_x_px: null,
+    anchor_y_px: null
+  };
+
+  // smoothing helper
   function lerp(a,b,t){ return a + (b-a)*t; }
-
-  // State for smoothing
   const smooth = { tx:0, ty:0, rot:0, scale:1 };
-  const smoothFactor = 0.22; // lower -> more smoothing; adjust between 0.12..0.4
+  const smoothFactor = 0.22;
 
-  // camera selection helper
-  let usingFront = true;
-  let camList = [];
-  let currentCamIndex = 0;
-
-  // Prepare MediaPipe FaceMesh
+  // MediaPipe face mesh
   const faceMesh = new FaceMesh({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
   });
@@ -96,10 +127,145 @@ frameImg.src = "https://www.klearkut.com/static/imgs/assets/vto/VTO_Demo.png";
   });
 
   let latestLandmarks = null;
+  let debugMode = false;
+  const DEFAULT_PD_MM = 63;
+
+  // Iris landmark groups for refined model
+  const LEFT_IRIS = [468,469,470,471,472];
+  const RIGHT_IRIS = [473,474,475,476,477];
+
+  function toCanvas(p, w, h){ return { x: p.x * w, y: p.y * h }; }
+
+  // avg helper
+  function avgPoints(indices, lm, w, h){
+    let sx=0, sy=0;
+    for(const i of indices){ sx += lm[i].x * w; sy += lm[i].y * h; }
+    return { x: sx/indices.length, y: sy/indices.length };
+  }
+
+  // compute pixels per mm (PD method)
+  function computePixelPerMmFromLandmarks(lm, canvasEl) {
+    try {
+      const L = avgPoints(LEFT_IRIS, lm, canvasEl.width, canvasEl.height);
+      const R = avgPoints(RIGHT_IRIS, lm, canvasEl.width, canvasEl.height);
+      const pixelPD = Math.hypot(R.x - L.x, R.y - L.y);
+      const userPD = Number(pdInput.value) || DEFAULT_PD_MM;
+      if (!pixelPD || userPD <= 0) return null;
+      return pixelPD / userPD; // pixels per mm
+    } catch(e){
+      return null;
+    }
+  }
+
+  // main draw function which uses real-world frame width and independent vertical stretch
+  function drawFrameWithRealScale(lm) {
+    // ensure image loaded
+    if (!frameImg || !frameImg.complete || (frameImg.naturalWidth || 0) === 0) {
+      // skip drawing frame until image is loaded
+      return;
+    }
+
+    const lw = canvas.width, lh = canvas.height;
+    const leftEyeIdxs  = [33, 7, 163, 144, 145, 153, 154, 155, 133];
+    const rightEyeIdxs = [263,249,390,373,374,380,381,382,362];
+    const noseBridgeIdxs = [6,197,195,5,4];
+
+    const L = avgPoints(leftEyeIdxs, lm, lw, lh);
+    const R = avgPoints(rightEyeIdxs, lm, lw, lh);
+    const NB = avgPoints(noseBridgeIdxs, lm, lw, lh);
+
+    // face width estimate (temples more stable)
+    const leftTemple = toCanvas(lm[127], lw, lh), rightTemple = toCanvas(lm[356], lw, lh);
+    let faceWidth = Math.hypot(rightTemple.x - leftTemple.x, rightTemple.y - leftTemple.y);
+    if (!isFinite(faceWidth) || faceWidth < 1) {
+      faceWidth = Math.hypot(R.x - L.x, R.y - L.y);
+    }
+
+    // rotation (tilt)
+    const angle = Math.atan2(R.y - L.y, R.x - L.x);
+
+    // compute pixels/mm using iris PD if available
+    const ppm = computePixelPerMmFromLandmarks(lm, canvas);
+    let scaleX;
+    if (ppm) {
+      const desiredFrameWidthPx = frameMeta.frame_width_mm * ppm;
+      scaleX = desiredFrameWidthPx / (frameMeta.asset_native_width_px || frameImg.naturalWidth || frameImg.width || 1600);
+      status.textContent = `Detected PD scale: ${ppm.toFixed(2)} px/mm`;
+    } else {
+      // fallback: scale by faceWidth mapping (heuristic)
+      const fallbackScaleFactor = 1.6;
+      const desiredFrameWidthPx = faceWidth * fallbackScaleFactor;
+      scaleX = desiredFrameWidthPx / (frameMeta.asset_native_width_px || frameImg.naturalWidth || frameImg.width || 1600);
+      status.textContent = `Using fallback scale (no iris landmarks)`;
+    }
+
+    // vertical stretch factor from UI
+    const verticalStretch = Number(vStretch.value) || 1.0;
+
+    // compute anchor: eye midpoint blended with nose bridge
+    const anchorX = ((L.x + R.x) / 2) * 0.85 + NB.x * 0.15;
+    const anchorY = ((L.y + R.y) / 2) * 0.85 + NB.y * 0.15;
+
+    const ASSET_VERTICAL_OFFSET = Number(offY.value) || -60;
+    const ASSET_HORIZONTAL_OFFSET = Number(offX.value) || -10;
+
+    // smoothing
+    smooth.tx = lerp(smooth.tx, anchorX, smoothFactor);
+    smooth.ty = lerp(smooth.ty, anchorY + ASSET_VERTICAL_OFFSET, smoothFactor);
+    smooth.rot = lerp(smooth.rot, angle, smoothFactor);
+    // keep a single stored scale for readability, but compute both draws from it
+    smooth.scale = lerp(smooth.scale, scaleX, smoothFactor);
+
+    // debug landmarks
+    if (debugMode) {
+      ctx.fillStyle = 'red'; ctx.beginPath(); ctx.arc(L.x, L.y, 4,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle = 'red'; ctx.beginPath(); ctx.arc(R.x, R.y, 4,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle = 'yellow'; ctx.beginPath(); ctx.arc(NB.x, NB.y, 4,0,2*Math.PI); ctx.fill();
+      const ppmLocal = computePixelPerMmFromLandmarks(lm, canvas);
+      if (ppmLocal) {
+        const Liris = avgPoints(LEFT_IRIS, lm, lw, lh);
+        const Riris = avgPoints(RIGHT_IRIS, lm, lw, lh);
+        ctx.fillStyle='white'; ctx.font='12px monospace';
+        ctx.fillText(`ppm:${ppmLocal.toFixed(2)}`, 10, 18);
+        ctx.fillText(`PDpx:${Math.hypot(Riris.x-Liris.x,Riris.y-Liris.y).toFixed(1)}`, 10, 34);
+      }
+    }
+
+    // ---- compute native sizes and scales ----
+    const nativeAssetWidth = frameMeta.asset_native_width_px || frameImg.naturalWidth || frameImg.width || 1600;
+    const nativeAssetHeight = (frameImg.naturalHeight && frameImg.naturalHeight>0) ? frameImg.naturalHeight : Math.round(nativeAssetWidth * 0.4);
+
+    const scaleY = smooth.scale * verticalStretch;
+
+    // final on-screen sizes
+    const w = nativeAssetWidth * smooth.scale;
+    const h = nativeAssetHeight * scaleY;
+
+    // compute anchor inside asset
+    const anchorInAssetX = frameMeta.anchor_x_px || (nativeAssetWidth / 2);
+    const anchorInAssetY = frameMeta.anchor_y_px || (nativeAssetHeight / 2);
+
+    // draw frame (mirrored handling)
+    ctx.save();
+    const drawX = canvas.width - (smooth.tx + ASSET_HORIZONTAL_OFFSET);
+    const drawY = smooth.ty;
+    ctx.translate(drawX, drawY);
+    ctx.rotate(-smooth.rot);
+
+    // drawImage with independent w,h (takes care of vertical stretch)
+    ctx.drawImage(
+      frameImg,
+      -anchorInAssetX * smooth.scale,     // dx
+      -anchorInAssetY * scaleY,           // dy
+      w,                                  // dwidth
+      h                                   // dheight
+    );
+    ctx.restore();
+  }
+
+  // on results -> draw video + overlay
   faceMesh.onResults((results) => {
-    // draw mirrored video
     ctx.clearRect(0,0,canvas.width, canvas.height);
-    // Draw mirrored video image onto canvas
     ctx.save();
     ctx.scale(-1,1);
     ctx.drawImage(results.image, -canvas.width, 0, canvas.width, canvas.height);
@@ -107,162 +273,104 @@ frameImg.src = "https://www.klearkut.com/static/imgs/assets/vto/VTO_Demo.png";
 
     if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
       latestLandmarks = results.multiFaceLandmarks[0];
+      drawFrameWithRealScale(latestLandmarks);
       status.textContent = 'Face detected';
-      drawGlassesOnLandmarks(latestLandmarks);
     } else {
       latestLandmarks = null;
       status.textContent = 'No face detected';
     }
   });
 
-  // Use MediaPipe Camera helper
+  // camera start
   let mpCamera = null;
+  let camList = [], currentCamIndex = 0;
   async function startCamera(deviceId = undefined) {
     if (mpCamera) mpCamera.stop();
     const constraints = {
       video: {
         width: 1280,
         height: 720,
-        facingMode: deviceId ? undefined : (usingFront ? 'user' : 'environment'),
+        facingMode: deviceId ? undefined : 'user',
         deviceId: deviceId ? { exact: deviceId } : undefined
-      },
-      audio: false
+      }, audio: false
     };
     try {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       video.srcObject = stream;
-      // list cameras
       const cams = await navigator.mediaDevices.enumerateDevices();
       camList = cams.filter(d => d.kind === 'videoinput');
-      // find the index of current device if provided
       if (deviceId) {
-        const index = camList.findIndex(c => c.deviceId === deviceId);
-        if (index >= 0) currentCamIndex = index;
+        const idx = camList.findIndex(c => c.deviceId === deviceId);
+        if (idx >= 0) currentCamIndex = idx;
       }
       mpCamera = new Camera(video, {
         onFrame: async () => { await faceMesh.send({ image: video }); },
         width: 1280, height: 720
       });
       mpCamera.start();
-      status.textContent = 'Camera started';
-    } catch (err) {
+    } catch(err) {
       console.error(err);
-      status.textContent = 'Camera error: ' + (err.message || err);
-      alert('Camera permission required. If blocked, allow camera for this site and reload.');
+      status.textContent = 'Camera error';
     }
   }
 
-  // compute pixel coords from normalized landmark
-  function toCanvas(p, w, h){ return { x: p.x * w, y: p.y * h }; }
-
-  // draw glasses overlay using landmarks
-  function drawGlassesOnLandmarks(lm) {
-    // Key landmarks (MediaPipe indices)
-    const leftEye = lm[33], rightEye = lm[263], nose = lm[1];
-    const leftTemple = lm[127], rightTemple = lm[356];
-
-
- 
-
-
-    // convert to pixel coords on canvas
-    const lw = canvas.width, lh = canvas.height;
-    const L = toCanvas(leftEye, lw, lh), R = toCanvas(rightEye, lw, lh), N = toCanvas(nose, lw, lh);
-    const LT = toCanvas(leftTemple, lw, lh), RT = toCanvas(rightTemple, lw, lh);
-
-    // estimate face width using temple points (stable)
-    const faceWidth = Math.hypot(RT.x - LT.x, RT.y - LT.y) || Math.hypot(R.x - L.x, R.y - L.y);
-
-    // angle of eyes for rotation
-    const angle = Math.atan2(R.y - L.y, R.x - L.x);
-
-    // -----------------------
-    // Better anchor calculation
-    // -----------------------
-    // 1) eye center (midpoint between left & right eye)
-    const eyeCenterX = (L.x + R.x) / 2;
-    const eyeCenterY = (L.y + R.y) / 2;
-
-    // 2) nose tip y (lower nose)
-    const noseTipY = N.y;
-
-    // 3) weighted anchor y between eye center and nose tip (closer to eye center)
-    //    tweak weights (0.6/0.4) if you want it higher or lower
-    const anchorX = eyeCenterX;
-    const anchorY = eyeCenterY * 0.6 + noseTipY * 0.4;
-
-    // 4) manual asset-specific vertical offset (pixels). If frames sit too low, use negative value.
-    //    You can tune this per-asset. Start with -8 .. +16 pixels depending on asset.
-    const ASSET_VERTICAL_OFFSET = -10; // tweak this to raise/lower the glasses
-    const ASSET_HORIZONTAL_OFFSET = window.ASSET_HORIZONTAL_OFFSET ?? -5; // tweak this
-    const finalX = anchorX;
-    const finalY = anchorY + ASSET_VERTICAL_OFFSET;
-
-    // desired width for the frame image: tune factor depending on your frame asset design
-    const assetNativeWidth = frameImg.width || 800; // fallback if not loaded
-    const targetWidth = faceWidth * 1.6; // tweak (1.4..1.8) depending on asset anchor
-    const scale = targetWidth / assetNativeWidth;
-
-    // smoothing (lerp)
-    smooth.tx = lerp(smooth.tx, finalX, smoothFactor);
-    smooth.ty = lerp(smooth.ty, finalY, smoothFactor);
-    smooth.rot = lerp(smooth.rot, angle, smoothFactor);
-    smooth.scale = lerp(smooth.scale, scale, smoothFactor);
-
-    // draw the frame (mirrored coordinates)
-    ctx.save();
-    ctx.translate(canvas.width - (smooth.tx + ASSET_HORIZONTAL_OFFSET), smooth.ty);
-
-    ctx.rotate(-smooth.rot);
-    const w = (assetNativeWidth || frameImg.width) * smooth.scale;
-    const h = (frameImg.height || 300) * smooth.scale;
-    // vertical anchor tweak: -0.45 worked earlier; you may tweak this per asset
-    ctx.drawImage(frameImg, -w * 0.5, -h * 0.45, w, h);
-    ctx.restore();
-    }
-
-  // basic toggle mirror: flips both video display and canvas drawing logic
-  let mirrored = true;
+  // UI events
   toggleMirrorBtn.addEventListener('click', () => {
-    mirrored = !mirrored;
-    if (mirrored) { video.style.transform = 'scaleX(-1)'; } else { video.style.transform = ''; }
-  });
-
-  // switch camera (front/back) if multiple cameras available
-  switchCamBtn.addEventListener('click', async () => {
-    if (!camList.length) {
-      const cams = await navigator.mediaDevices.enumerateDevices();
-      camList = cams.filter(d => d.kind === 'videoinput');
+    if (video.style.transform.includes('scaleX(-1)')) {
+      video.style.transform = '';
+    } else {
+      video.style.transform = 'scaleX(-1)';
     }
-    if (camList.length <= 1) { alert('No other camera found'); return; }
-    currentCamIndex = (currentCamIndex + 1) % camList.length;
-    const dev = camList[currentCamIndex];
-    usingFront = false;
-    await startCamera(dev.deviceId);
   });
 
-  // Capture button - open snapshot in new tab
+  switchCamBtn.addEventListener('click', async () => {
+    const cams = await navigator.mediaDevices.enumerateDevices();
+    camList = cams.filter(d => d.kind === 'videoinput');
+    if (camList.length <= 1) return alert('No other camera found');
+    currentCamIndex = (currentCamIndex + 1) % camList.length;
+    await startCamera(camList[currentCamIndex].deviceId);
+  });
+
   captureBtn.addEventListener('click', () => {
     const dataUrl = canvas.toDataURL('image/png');
     const w = window.open('');
     w.document.body.style.margin = 0;
-    const img = new Image();
-    img.src = dataUrl;
-    w.document.body.appendChild(img);
+    const img = new Image(); img.src = dataUrl; w.document.body.appendChild(img);
   });
 
-  // Resize canvas to match video display size
+  // controls update handlers
+  offY.addEventListener('input', () => {}); // live-used in draw
+  offX.addEventListener('input', () => {});
+  vStretch.addEventListener('input', () => {});
+  dbg.addEventListener('change', ()=> { debugMode = dbg.checked; });
+
+  // update frameMeta when inputs change
+  frameWidthEl.addEventListener('input', ()=> {
+    frameMeta.frame_width_mm = Number(frameWidthEl.value) || frameMeta.frame_width_mm;
+  });
+  assetWidthEl.addEventListener('input', ()=> {
+    frameMeta.asset_native_width_px = Number(assetWidthEl.value) || frameMeta.asset_native_width_px;
+  });
+
+  // fit canvas size to video
   function fitCanvas() {
     const rect = video.getBoundingClientRect();
     canvas.width = video.videoWidth || rect.width;
     canvas.height = video.videoHeight || (rect.width * 3/4);
   }
-  video.addEventListener('loadedmetadata', () => {
-    fitCanvas();
-  });
+  video.addEventListener('loadedmetadata', fitCanvas);
 
-  // Start camera
+  // start
   await startCamera();
+
+  // ensure image loaded; if asset width unknown, update assetWidth input once loaded
+  frameImg.onload = () => {
+    if (!frameMeta.asset_native_width_px && frameImg.width) {
+      frameMeta.asset_native_width_px = frameImg.width;
+      assetWidthEl.value = frameImg.width;
+    }
+  };
+
 })();
 </script>
 </body>
