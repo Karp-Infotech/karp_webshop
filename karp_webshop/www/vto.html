@@ -9,8 +9,29 @@
     h1 { font-size:18px; margin:0 0 8px 0; }
     .card { background:white; border-radius:10px; padding:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); max-width:920px; margin:auto; }
     #container { position: relative; width: 720px; max-width:100%; margin:12px auto; }
-    video, canvas { position:absolute; left:0; top:0; width:100%; height:auto; border-radius:8px; }
-    video { transform: scaleX(-1); -webkit-transform: scaleX(-1);} /* mirror for user */
+    /* keep video aspect ratio; don't crop (contain) */
+    video {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      object-fit: contain;
+      background: black;
+      transform: scaleX(-1);
+      -webkit-transform: scaleX(-1); /* mirror for user */
+    }
+    /* Canvas visually fills the container; backing store sized in JS */
+    canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      pointer-events: none;
+    }
     #controls { display:flex; gap:8px; margin-top:8px; align-items:center; justify-content:center; flex-wrap:wrap; }
     button { padding:8px 12px; border-radius:6px; border:1px solid #ddd; background:white; cursor:pointer; }
     label { font-size:13px; color:#333; }
@@ -19,6 +40,8 @@
     #status { font-size:12px; color:#666; text-align:center; margin-top:6px; }
     .row { display:flex; gap:8px; align-items:center; justify-content:center; margin-top:8px; flex-wrap:wrap; }
     .small { font-size:12px; color:#666; }
+    #fitFeedback { font-weight:700; margin-top:8px; text-align:center; font-size:15px; }
+    #fitConfidence { color:#666; font-size:13px; text-align:center; margin-top:4px; }
   </style>
 </head>
 <body>
@@ -71,6 +94,9 @@
     </div>
 
     <div id="status">Status: <span id="statustxt">Initializing…</span></div>
+    <div id="fitFeedback"></div>
+    <div id="fitConfidence"></div>
+
     <div class="small" style="text-align:center; margin-top:6px;">
       Tip: for best fit, enter your pupillary distance (PD). If unknown, use default (63 mm) or calibrate via a credit card method.
     </div>
@@ -84,6 +110,7 @@
 (async function(){
   const video = document.getElementById('video');
   const canvas = document.getElementById('overlay');
+  const containerEl = document.getElementById('container');
   const ctx = canvas.getContext('2d');
   const status = document.getElementById('statustxt');
   const captureBtn = document.getElementById('captureBtn');
@@ -96,6 +123,9 @@
   const offX = document.getElementById('offX');
   const vStretch = document.getElementById('vStretch');
   const dbg = document.getElementById('dbg');
+
+  const fitEl = document.getElementById('fitFeedback');
+  const confEl = document.getElementById('fitConfidence');
 
   // Frame image (use your webp/png link here; same-origin recommended)
   const frameImg = new Image();
@@ -134,27 +164,131 @@
   const LEFT_IRIS = [468,469,470,471,472];
   const RIGHT_IRIS = [473,474,475,476,477];
 
-  function toCanvas(p, w, h){ return { x: p.x * w, y: p.y * h }; }
+  // Convert normalized landmark to CSS pixels on canvas
+  function toCanvas(p){ 
+    const w = canvas.clientWidth || containerEl.clientWidth;
+    const h = canvas.clientHeight || containerEl.clientHeight;
+    return { x: p.x * w, y: p.y * h };
+  }
 
-  // avg helper
-  function avgPoints(indices, lm, w, h){
+  // avg helper using CSS pixels
+  function avgPoints(indices, lm){
+    const w = canvas.clientWidth || containerEl.clientWidth;
+    const h = canvas.clientHeight || containerEl.clientHeight;
     let sx=0, sy=0;
     for(const i of indices){ sx += lm[i].x * w; sy += lm[i].y * h; }
     return { x: sx/indices.length, y: sy/indices.length };
   }
 
-  // compute pixels per mm (PD method)
-  function computePixelPerMmFromLandmarks(lm, canvasEl) {
+  // compute pixels per mm (PD method) - simple attempt using iris landmarks
+  function computePixelPerMmFromLandmarks(lm) {
     try {
-      const L = avgPoints(LEFT_IRIS, lm, canvasEl.width, canvasEl.height);
-      const R = avgPoints(RIGHT_IRIS, lm, canvasEl.width, canvasEl.height);
+      const L = avgPoints(LEFT_IRIS, lm);
+      const R = avgPoints(RIGHT_IRIS, lm);
       const pixelPD = Math.hypot(R.x - L.x, R.y - L.y);
       const userPD = Number(pdInput.value) || DEFAULT_PD_MM;
       if (!pixelPD || userPD <= 0) return null;
-      return pixelPD / userPD; // pixels per mm
+      return pixelPD / userPD; // pixels per mm (CSS px / mm)
     } catch(e){
       return null;
     }
+  }
+
+  // ---------------- Fit feedback: circular buffer and helpers ----------------
+  class CircularBuffer {
+    constructor(n){ this.n=n; this.arr=[]; }
+    push(x){ this.arr.push(x); if(this.arr.length>this.n) this.arr.shift(); }
+    avg(){ if(!this.arr.length) return null; return this.arr.reduce((a,b)=>a+b,0)/this.arr.length; }
+    length(){ return this.arr.length; }
+  }
+  const ppmBuffer = new CircularBuffer(6);
+  const facePxBuffer = new CircularBuffer(6);
+  const fitRatioBuffer = new CircularBuffer(6);
+
+  function computePPM_smart(lm) {
+    // iris-based (preferred)
+    try {
+      const Liris = avgPoints(LEFT_IRIS, lm);
+      const Riris = avgPoints(RIGHT_IRIS, lm);
+      const pixelPD = Math.hypot(Riris.x - Liris.x, Riris.y - Liris.y);
+      const userPDmm = Number(pdInput.value) || null;
+      if (pixelPD && userPDmm && userPDmm>0) return pixelPD / userPDmm;
+      if (pixelPD) return pixelPD / DEFAULT_PD_MM;
+    } catch(e){}
+    return null;
+  }
+
+  function computeFacePxWidth(lm) {
+    try {
+      const LT = toCanvas(lm[127]);
+      const RT = toCanvas(lm[356]);
+      if (LT && RT) return Math.hypot(RT.x - LT.x, RT.y - LT.y);
+    } catch(e){}
+    try {
+      const L = toCanvas(lm[33]);
+      const R = toCanvas(lm[263]);
+      return Math.hypot(R.x - L.x, R.y - L.y);
+    } catch(e){}
+    return null;
+  }
+
+  function updateFitFeedback(lm) {
+    if (!lm) {
+      fitEl.textContent = '';
+      confEl.textContent = '';
+      return;
+    }
+
+    const ppmNow = computePPM_smart(lm); // px per mm (may be null)
+    const facePxNow = computeFacePxWidth(lm); // px
+
+    if (ppmNow) ppmBuffer.push(ppmNow);
+    if (facePxNow) facePxBuffer.push(facePxNow);
+
+    const ppm = ppmBuffer.avg();
+    const facePx = facePxBuffer.avg();
+
+    if (!ppm || !facePx) {
+      confEl.textContent = 'Calculating size… (move into view / good lighting)';
+      fitEl.textContent = '';
+      return;
+    }
+
+    const faceMM = facePx / ppm;
+    const frameMM = frameMeta.frame_width_mm || Number(frameWidthEl.value) || 140;
+    const fitRatio = frameMM / faceMM;
+    fitRatioBuffer.push(fitRatio);
+    const fitRatioSm = fitRatioBuffer.avg();
+
+    // thresholds (tweak)
+    const t_small = 0.92, t_slightSmall = 0.98, t_slightLarge = 1.03, t_large = 1.08;
+
+    let msg = '', color = '#111';
+    if (fitRatioSm < t_small) {
+      msg = `Too Small — frame is ${(fitRatioSm*100).toFixed(0)}% of your face width`;
+      color = '#d9534f';
+    } else if (fitRatioSm < t_slightSmall) {
+      msg = `Slightly Small — frame is ${(fitRatioSm*100).toFixed(0)}% of your face width`;
+      color = '#f0ad4e';
+    } else if (fitRatioSm <= t_slightLarge) {
+      msg = `Fits Perfect — frame is ${(fitRatioSm*100).toFixed(0)}% of your face width`;
+      color = '#5cb85c';
+    } else if (fitRatioSm <= t_large) {
+      msg = `Slightly Oversized — frame is ${(fitRatioSm*100).toFixed(0)}% of your face width`;
+      color = '#f0ad4e';
+    } else {
+      msg = `Oversized — frame is ${(fitRatioSm*100).toFixed(0)}% of your face width`;
+      color = '#d9534f';
+    }
+
+    const usedUserPD = Boolean(pdInput.value && Number(pdInput.value) > 0);
+    const confMsg = usedUserPD ? 'High confidence (using your PD).' :
+                    (ppmBuffer.arr.length >= 4) ? 'Medium confidence (estimated PD used).' :
+                    'Low confidence — enter PD or calibrate for best accuracy.';
+
+    fitEl.style.color = color;
+    fitEl.textContent = msg;
+    confEl.textContent = confMsg;
   }
 
   // main draw function which uses real-world frame width and independent vertical stretch
@@ -165,17 +299,19 @@
       return;
     }
 
-    const lw = canvas.width, lh = canvas.height;
+    // Use CSS canvas sizes for layout
+    const lw = canvas.clientWidth, lh = canvas.clientHeight;
+
     const leftEyeIdxs  = [33, 7, 163, 144, 145, 153, 154, 155, 133];
     const rightEyeIdxs = [263,249,390,373,374,380,381,382,362];
     const noseBridgeIdxs = [6,197,195,5,4];
 
-    const L = avgPoints(leftEyeIdxs, lm, lw, lh);
-    const R = avgPoints(rightEyeIdxs, lm, lw, lh);
-    const NB = avgPoints(noseBridgeIdxs, lm, lw, lh);
+    const L = avgPoints(leftEyeIdxs, lm);
+    const R = avgPoints(rightEyeIdxs, lm);
+    const NB = avgPoints(noseBridgeIdxs, lm);
 
     // face width estimate (temples more stable)
-    const leftTemple = toCanvas(lm[127], lw, lh), rightTemple = toCanvas(lm[356], lw, lh);
+    const leftTemple = toCanvas(lm[127]), rightTemple = toCanvas(lm[356]);
     let faceWidth = Math.hypot(rightTemple.x - leftTemple.x, rightTemple.y - leftTemple.y);
     if (!isFinite(faceWidth) || faceWidth < 1) {
       faceWidth = Math.hypot(R.x - L.x, R.y - L.y);
@@ -185,7 +321,7 @@
     const angle = Math.atan2(R.y - L.y, R.x - L.x);
 
     // compute pixels/mm using iris PD if available
-    const ppm = computePixelPerMmFromLandmarks(lm, canvas);
+    const ppm = computePixelPerMmFromLandmarks(lm);
     let scaleX;
     if (ppm) {
       const desiredFrameWidthPx = frameMeta.frame_width_mm * ppm;
@@ -206,7 +342,7 @@
     const anchorX = ((L.x + R.x) / 2) * 0.85 + NB.x * 0.15;
     const anchorY = ((L.y + R.y) / 2) * 0.85 + NB.y * 0.15;
 
-    const ASSET_VERTICAL_OFFSET = Number(offY.value) || -60;
+    const ASSET_VERTICAL_OFFSET = (offY && offY.value !== '') ? Number(offY.value) : -60;
     const ASSET_HORIZONTAL_OFFSET = Number(offX.value) || -10;
 
     // smoothing
@@ -221,14 +357,16 @@
       ctx.fillStyle = 'red'; ctx.beginPath(); ctx.arc(L.x, L.y, 4,0,2*Math.PI); ctx.fill();
       ctx.fillStyle = 'red'; ctx.beginPath(); ctx.arc(R.x, R.y, 4,0,2*Math.PI); ctx.fill();
       ctx.fillStyle = 'yellow'; ctx.beginPath(); ctx.arc(NB.x, NB.y, 4,0,2*Math.PI); ctx.fill();
-      const ppmLocal = computePixelPerMmFromLandmarks(lm, canvas);
+      const ppmLocal = computePixelPerMmFromLandmarks(lm);
       if (ppmLocal) {
-        const Liris = avgPoints(LEFT_IRIS, lm, lw, lh);
-        const Riris = avgPoints(RIGHT_IRIS, lm, lw, lh);
+        const Liris = avgPoints(LEFT_IRIS, lm);
+        const Riris = avgPoints(RIGHT_IRIS, lm);
         ctx.fillStyle='white'; ctx.font='12px monospace';
         ctx.fillText(`ppm:${ppmLocal.toFixed(2)}`, 10, 18);
         ctx.fillText(`PDpx:${Math.hypot(Riris.x-Liris.x,Riris.y-Liris.y).toFixed(1)}`, 10, 34);
       }
+      ctx.fillStyle='white'; ctx.font='12px monospace';
+      ctx.fillText(`yaw?: angle:${currentAngleLabel()}`, 10, 50); // harmless placeholder
     }
 
     // ---- compute native sizes and scales ----
@@ -245,9 +383,9 @@
     const anchorInAssetX = frameMeta.anchor_x_px || (nativeAssetWidth / 2);
     const anchorInAssetY = frameMeta.anchor_y_px || (nativeAssetHeight / 2);
 
-    // draw frame (mirrored handling)
+    // draw frame (mirrored handling) — use CSS canvas width for drawX
     ctx.save();
-    const drawX = canvas.width - (smooth.tx + ASSET_HORIZONTAL_OFFSET);
+    const drawX = (canvas.clientWidth) - (smooth.tx + ASSET_HORIZONTAL_OFFSET);
     const drawY = smooth.ty;
     ctx.translate(drawX, drawY);
     ctx.rotate(-smooth.rot);
@@ -255,20 +393,30 @@
     // drawImage with independent w,h (takes care of vertical stretch)
     ctx.drawImage(
       frameImg,
-      -anchorInAssetX * smooth.scale,     // dx
+      -anchorInAssetX * smooth.scale,     // dx (CSS pixels)
       -anchorInAssetY * scaleY,           // dy
-      w,                                  // dwidth
+      w,                                  // dwidth (CSS pixels)
       h                                   // dheight
     );
     ctx.restore();
+
+    // update fit-feedback after drawing (smooth & stable)
+    updateFitFeedback(lm);
   }
+
+  // helper used in debug (placeholder, safe)
+  function currentAngleLabel(){ return ''; }
 
   // on results -> draw video + overlay
   faceMesh.onResults((results) => {
-    ctx.clearRect(0,0,canvas.width, canvas.height);
+    // clear using CSS pixels
+    const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
+    ctx.clearRect(0,0, cssW, cssH);
+
     ctx.save();
-    ctx.scale(-1,1);
-    ctx.drawImage(results.image, -canvas.width, 0, canvas.width, canvas.height);
+    ctx.scale(-1,1); // mirrored draw
+    // draw using CSS pixel sizes
+    ctx.drawImage(results.image, -cssW, 0, cssW, cssH);
     ctx.restore();
 
     if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
@@ -278,6 +426,7 @@
     } else {
       latestLandmarks = null;
       status.textContent = 'No face detected';
+      updateFitFeedback(null);
     }
   });
 
@@ -316,6 +465,7 @@
 
   // UI events
   toggleMirrorBtn.addEventListener('click', () => {
+    // flip CSS transform on video only (canvas stays drawn mirrored by code)
     if (video.style.transform.includes('scaleX(-1)')) {
       video.style.transform = '';
     } else {
@@ -352,13 +502,39 @@
     frameMeta.asset_native_width_px = Number(assetWidthEl.value) || frameMeta.asset_native_width_px;
   });
 
-  // fit canvas size to video
+  // fitCanvas: size container using intrinsic video aspect ratio and scale canvas backing store for DPR
   function fitCanvas() {
-    const rect = video.getBoundingClientRect();
-    canvas.width = video.videoWidth || rect.width;
-    canvas.height = video.videoHeight || (rect.width * 3/4);
+    const layoutWidth = containerEl.clientWidth || video.getBoundingClientRect().width || 640;
+    const intrinsicVideoWidth = video.videoWidth || 0;
+    const intrinsicVideoHeight = video.videoHeight || 0;
+    let targetWidth, targetHeight;
+
+    if (intrinsicVideoWidth && intrinsicVideoHeight) {
+      const aspect = intrinsicVideoWidth / intrinsicVideoHeight;
+      targetWidth = layoutWidth;
+      targetHeight = Math.round(targetWidth / aspect);
+    } else {
+      targetWidth = layoutWidth;
+      targetHeight = Math.round(targetWidth * 9 / 16);
+    }
+
+    // set container height to CSS height
+    containerEl.style.height = targetHeight + 'px';
+
+    // set canvas backing store (physical pixels) scaled by DPR and CSS size
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(targetWidth * dpr);
+    canvas.height = Math.round(targetHeight * dpr);
+    canvas.style.width = targetWidth + 'px';
+    canvas.style.height = targetHeight + 'px';
+
+    // set transform so drawing uses CSS pixels coordinates
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
+
   video.addEventListener('loadedmetadata', fitCanvas);
+  video.addEventListener('playing', fitCanvas);
+  window.addEventListener('resize', fitCanvas);
 
   // start
   await startCamera();
