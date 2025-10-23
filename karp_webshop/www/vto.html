@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Minimal Client VTO Demo — Real Scale (PD)</title>
+  <title>Minimal Client VTO Demo — Multi-angle L/R</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body { font-family: system-ui, -apple-system, Roboto, "Segoe UI", sans-serif; margin: 12px; background:#f5f6f8; color:#111; }
@@ -23,7 +23,7 @@
 </head>
 <body>
   <div class="card">
-    <h1>Minimal Client VTO Demo — Real Scale (PD)</h1>
+    <h1>Minimal Client VTO Demo — Multi-angle L/R</h1>
 
     <div id="container">
       <video id="video" autoplay playsinline muted></video>
@@ -82,6 +82,7 @@
 
 <script>
 (async function(){
+  // DOM
   const video = document.getElementById('video');
   const canvas = document.getElementById('overlay');
   const ctx = canvas.getContext('2d');
@@ -97,18 +98,55 @@
   const vStretch = document.getElementById('vStretch');
   const dbg = document.getElementById('dbg');
 
-  // Frame image (use your webp/png link here; same-origin recommended)
-  const frameImg = new Image();
-  frameImg.crossOrigin = "anonymous";
-  frameImg.src = "http://ls-erp:8000/assets/vto/VTO_Demo.png"; // ensure same-origin or CORS-enabled
-
-  // frame metadata defaults (you can update per SKU)
-  let frameMeta = {
-    frame_width_mm: Number(frameWidthEl.value) || 140,
-    asset_native_width_px: Number(assetWidthEl.value) || 1600,
-    anchor_x_px: null,
-    anchor_y_px: null
+  // ---------- Multi-angle assets (change URLs to your hosted images) ----------
+  // You must supply left and right for three4 and side for best visual fidelity.
+  const assets = {
+    front:        "http://ls-erp:8000/assets/vto/Frame_F.png",
+    three4_right: "http://ls-erp:8000/assets/vto/Frame_R.png",
+    three4_left:  "http://ls-erp:8000/assets/vto/Frame_L.png",
+    side_right:   "http://ls-erp:8000/assets/vto/Frame_R.png",
+    side_left:    "http://ls-erp:8000/assets/vto/Frame_L.png"
   };
+
+  // image cache + loader
+  const imgCache = {};
+  function loadImg(url) {
+    if (imgCache[url]) return imgCache[url];
+    const im = new Image();
+    im.crossOrigin = "anonymous";
+    im.src = url;
+    im.onload = () => {
+      // update asset width input if empty
+      if (!frameMeta.asset_native_width_px && im.naturalWidth) {
+        frameMeta.asset_native_width_px = im.naturalWidth;
+        assetWidthEl.value = im.naturalWidth;
+      }
+    };
+    im.onerror = (e) => console.warn("Failed to load image", url, e);
+    imgCache[url] = im;
+    return im;
+  }
+
+  // current displayed image and current state
+  let frameImg = loadImg(assets.front);
+  let currentAngle = 'front';   // 'front' | 'three4' | 'side'
+  let currentSide = 'right';    // 'left' | 'right' (for three4/side)
+
+  function setActiveFrame(angleKey, side='right') {
+    let url;
+    if (angleKey === 'front') {
+      url = assets.front;
+    } else if (angleKey === 'three4') {
+      url = (side === 'left') ? assets.three4_left : assets.three4_right;
+    } else if (angleKey === 'side') {
+      url = (side === 'left') ? assets.side_left : assets.side_right;
+    } else {
+      url = assets.front;
+    }
+    frameImg = loadImg(url);
+    currentAngle = angleKey;
+    currentSide = (side === 'left') ? 'left' : 'right';
+  }
 
   // smoothing helper
   function lerp(a,b,t){ return a + (b-a)*t; }
@@ -157,13 +195,58 @@
     }
   }
 
-  // main draw function which uses real-world frame width and independent vertical stretch
+  // ----------------- yaw estimation & switching -----------------
+  let yawSmooth = 0;
+  function estimateYaw(lm, canvasEl) {
+    const lw = canvasEl.width, lh = canvasEl.height;
+    const L = avgPoints([33,7,133,144], lm, lw, lh);
+    const R = avgPoints([263,249,362,373], lm, lw, lh);
+    const N = toCanvas(lm[1], lw, lh);
+    const eyeMid = { x: (L.x + R.x)/2, y: (L.y + R.y)/2 };
+    const leftTemple = toCanvas(lm[127], lw, lh), rightTemple = toCanvas(lm[356], lw, lh);
+    let faceWidth = Math.hypot(rightTemple.x - leftTemple.x, rightTemple.y - leftTemple.y);
+    if (!isFinite(faceWidth) || faceWidth < 1) faceWidth = Math.hypot(R.x - L.x, R.y - L.y);
+    const dx = (eyeMid.x - N.x) / (faceWidth || 1);
+    return dx;
+  }
+
+  function updateAndSwitchByYaw(lm) {
+    const yaw = estimateYaw(lm, canvas);
+    yawSmooth = yawSmooth * 0.78 + yaw * 0.22;
+
+    // thresholds (tweak)
+    const t_front = 0.03;
+    const t_three4 = 0.12;
+
+    // determine side from sign (because video is mirrored we choose left for positive yawSmooth)
+    const side = (yawSmooth > 0) ? 'left' : 'right';
+
+    if (Math.abs(yawSmooth) < t_front) {
+      if (currentAngle !== 'front') setActiveFrame('front', 'right');
+    } else if (Math.abs(yawSmooth) < t_three4) {
+      if (currentAngle !== 'three4' || currentSide !== side) setActiveFrame('three4', side);
+    } else {
+      if (currentAngle !== 'side' || currentSide !== side) setActiveFrame('side', side);
+    }
+  }
+
+  // ---------------- frame metadata ----------------
+  let frameMeta = {
+    frame_width_mm: Number(frameWidthEl.value) || 140,
+    asset_native_width_px: Number(assetWidthEl.value) || 1600,
+    anchor_x_px: null,
+    anchor_y_px: null
+  };
+
+  // main draw function (uses frameImg & explicit left/right assets)
   function drawFrameWithRealScale(lm) {
     // ensure image loaded
     if (!frameImg || !frameImg.complete || (frameImg.naturalWidth || 0) === 0) {
-      // skip drawing frame until image is loaded
       return;
     }
+
+    // yaw-based switching
+    updateAndSwitchByYaw(lm);
 
     const lw = canvas.width, lh = canvas.height;
     const leftEyeIdxs  = [33, 7, 163, 144, 145, 153, 154, 155, 133];
@@ -202,18 +285,20 @@
     // vertical stretch factor from UI
     const verticalStretch = Number(vStretch.value) || 1.0;
 
-    // compute anchor: eye midpoint blended with nose bridge
-    const anchorX = ((L.x + R.x) / 2) * 0.85 + NB.x * 0.15;
-    const anchorY = ((L.y + R.y) / 2) * 0.85 + NB.y * 0.15;
+    // compute anchor: eye midpoint blended with nose bridge (bias toward nose to sit lower)
+    const eyeMidX = (L.x + R.x) / 2;
+    const eyeMidY = (L.y + R.y) / 2;
+    const NOSE_WEIGHT = 0.65;
+    const anchorX = eyeMidX * (1 - NOSE_WEIGHT) + NB.x * NOSE_WEIGHT;
+    const anchorY = eyeMidY * (1 - NOSE_WEIGHT) + NB.y * NOSE_WEIGHT;
 
-    const ASSET_VERTICAL_OFFSET = Number(offY.value) || -60;
+    const ASSET_VERTICAL_OFFSET = -20;
     const ASSET_HORIZONTAL_OFFSET = Number(offX.value) || -10;
 
     // smoothing
     smooth.tx = lerp(smooth.tx, anchorX, smoothFactor);
     smooth.ty = lerp(smooth.ty, anchorY + ASSET_VERTICAL_OFFSET, smoothFactor);
     smooth.rot = lerp(smooth.rot, angle, smoothFactor);
-    // keep a single stored scale for readability, but compute both draws from it
     smooth.scale = lerp(smooth.scale, scaleX, smoothFactor);
 
     // debug landmarks
@@ -229,6 +314,9 @@
         ctx.fillText(`ppm:${ppmLocal.toFixed(2)}`, 10, 18);
         ctx.fillText(`PDpx:${Math.hypot(Riris.x-Liris.x,Riris.y-Liris.y).toFixed(1)}`, 10, 34);
       }
+      // show yaw value for tuning
+      ctx.fillStyle='white'; ctx.font='12px monospace';
+      ctx.fillText(`yaw:${yawSmooth.toFixed(3)} angle:${currentAngle}/${currentSide}`, 10, 50);
     }
 
     // ---- compute native sizes and scales ----
@@ -245,21 +333,21 @@
     const anchorInAssetX = frameMeta.anchor_x_px || (nativeAssetWidth / 2);
     const anchorInAssetY = frameMeta.anchor_y_px || (nativeAssetHeight / 2);
 
-    // draw frame (mirrored handling)
+    // draw frame (mirrored handling). We use explicit left/right images, no runtime flip.
     ctx.save();
     const drawX = canvas.width - (smooth.tx + ASSET_HORIZONTAL_OFFSET);
     const drawY = smooth.ty;
     ctx.translate(drawX, drawY);
     ctx.rotate(-smooth.rot);
 
-    // drawImage with independent w,h (takes care of vertical stretch)
     ctx.drawImage(
       frameImg,
-      -anchorInAssetX * smooth.scale,     // dx
-      -anchorInAssetY * scaleY,           // dy
-      w,                                  // dwidth
-      h                                   // dheight
+      -anchorInAssetX * smooth.scale,
+      -anchorInAssetY * scaleY,
+      w,
+      h
     );
+
     ctx.restore();
   }
 
@@ -363,13 +451,8 @@
   // start
   await startCamera();
 
-  // ensure image loaded; if asset width unknown, update assetWidth input once loaded
-  frameImg.onload = () => {
-    if (!frameMeta.asset_native_width_px && frameImg.width) {
-      frameMeta.asset_native_width_px = frameImg.width;
-      assetWidthEl.value = frameImg.width;
-    }
-  };
+  // preload assets (non-blocking)
+  Object.values(assets).forEach(u => loadImg(u));
 
 })();
 </script>
