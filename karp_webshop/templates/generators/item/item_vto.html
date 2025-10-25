@@ -1,0 +1,41 @@
+<!-- TRY ON BUTTON -->
+<button class="btn btn-primary" id="tryOnBtn">Try ON</button>
+
+<!-- VTO MODAL -->
+<div class="modal fade" id="vtoModal" tabindex="-1" aria-labelledby="vtoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width:95%;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="vtoModalLabel">Virtual Try-On</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe id="vtoIframe" src="" style="width:100%; height:80vh; border:none;"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap 5 JS bundle (includes Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const tryBtn = document.getElementById('tryOnBtn');
+    const modalIframe = document.getElementById('vtoIframe');
+
+    tryBtn.addEventListener('click', function(){
+        // Set iframe source to your VTO HTML
+        modalIframe.src = '/vto.html';
+        // Show Bootstrap modal
+        var vtoModal = new bootstrap.Modal(document.getElementById('vtoModal'));
+        vtoModal.show();
+    });
+
+    // Optional: clear iframe on close to stop camera
+    const vtoModalEl = document.getElementById('vtoModal');
+    vtoModalEl.addEventListener('hidden.bs.modal', function () {
+        modalIframe.src = '';
+    });
+});
+</script>

@@ -1,8 +1,24 @@
+{% set item_code = (frappe.form_dict.item_code or '').strip() %}
+{% set website_item = None %}
+
+{% if item_code %}
+  {# 1) Try to find Website Item by its item_code field (# assumes Website Item has a field named 'item_code') #}
+  {% set wi_name = frappe.db.get_value('Website Item', {'item_code': item_code}, 'name') %}
+  {% if wi_name %}
+    {% set website_item = frappe.get_doc('Website Item', wi_name) %}
+  {% else %}
+    {# 2) Fallback: maybe item_code param actually contained the Website Item name/route #}
+    {% if frappe.db.exists('Website Item', item_code) %}
+      {% set website_item = frappe.get_doc('Website Item', item_code) %}
+    {% endif %}
+  {% endif %}
+{% endif %}
+
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Minimal Client VTO Demo — Real Scale (PD)</title>
+  <title>Virtual Try On</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body { font-family: system-ui, -apple-system, Roboto, "Segoe UI", sans-serif; margin: 12px; background:#f5f6f8; color:#111; }
@@ -46,62 +62,42 @@
 </head>
 <body>
   <div class="card">
-    <h1>Minimal Client VTO Demo — Real Scale (PD)</h1>
+    <h1>Virtual Try On - {{ website_item.item_name}}</h1>
 
     <div id="container">
       <video id="video" autoplay playsinline muted></video>
       <canvas id="overlay"></canvas>
     </div>
 
+  
+
+    <div id="controls">
+
+      <label style="margin-left:8px;">Vertical Adjustment:
+        <input id="offY" type="range" min="-200" max="200" value="0" step="1">
+      </label>
+
+      <label>Horizontal Adjustment:
+        <input id="offX" type="range" min="-200" max="200" value="0" step="1">
+      </label>
+      <div id="status">Status: <span id="statustxt">Initializing…</span></div>
+      <div id="fitFeedback"></div>
+      <div id="fitConfidence"></div>
+
+     
+    </div>
     <div class="row" style="justify-content:space-between;">
       <div>
         <label>Enter PD (mm):</label>
         <input id="pdInput" type="number" min="40" max="80" step="0.5" placeholder="eg. 63">
-        <span class="small"> (leave blank to use default 63 mm)</span>
       </div>
 
       <div>
         <label>Frame width (mm):</label>
-        <input id="frameWidth" type="number" min="80" max="160" value="140" step="1"> <span class="small">frame real width</span>
+        <input id="frameWidth" type="number" min="80" max="160" value="{{website_item.custom_frame_width }}" step="1" readonly> 
       </div>
 
-      <div>
-        <label>Asset native width (px):</label>
-        <input id="assetWidth" type="number" min="200" max="4000" value="1600" step="10"> <span class="small">image px width</span>
-      </div>
     </div>
-
-    <div id="controls">
-      <button id="captureBtn">Take Photo</button>
-      <button id="toggleMirror">Toggle Mirror</button>
-      <button id="switchCam">Switch Camera</button>
-
-      <label style="margin-left:8px;">Vertical offset:
-        <input id="offY" type="range" min="-200" max="200" value="5" step="1">
-      </label>
-
-      <label>Horizontal offset:
-        <input id="offX" type="range" min="-200" max="200" value="0" step="1">
-      </label>
-
-      <label>Vertical stretch:
-        <input id="vStretch" type="range" min="0.6" max="1.6" value="1.0" step="0.01">
-      </label>
-
-      <label>Debug:
-        <input id="dbg" type="checkbox" />
-      </label>
-    </div>
-
-    <div id="status">Status: <span id="statustxt">Initializing…</span></div>
-    <div id="fitFeedback"></div>
-    <div id="fitConfidence"></div>
-
-    <div class="small" style="text-align:center; margin-top:6px;">
-      Tip: for best fit, enter your pupillary distance (PD). If unknown, use default (63 mm) or calibrate via a credit card method.
-    </div>
-  </div>
-
   <!-- MediaPipe FaceMesh via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
@@ -113,29 +109,25 @@
   const containerEl = document.getElementById('container');
   const ctx = canvas.getContext('2d');
   const status = document.getElementById('statustxt');
-  const captureBtn = document.getElementById('captureBtn');
-  const toggleMirrorBtn = document.getElementById('toggleMirror');
-  const switchCamBtn = document.getElementById('switchCam');
   const pdInput = document.getElementById('pdInput');
   const frameWidthEl = document.getElementById('frameWidth');
-  const assetWidthEl = document.getElementById('assetWidth');
   const offY = document.getElementById('offY');
   const offX = document.getElementById('offX');
   const vStretch = document.getElementById('vStretch');
-  const dbg = document.getElementById('dbg');
 
   const fitEl = document.getElementById('fitFeedback');
   const confEl = document.getElementById('fitConfidence');
 
+
+
   // Frame image (use your webp/png link here; same-origin recommended)
   const frameImg = new Image();
   frameImg.crossOrigin = "anonymous";
-  frameImg.src = "http://ls-erp:8000/assets/vto/Frame_F.png"; // ensure same-origin or CORS-enabled
+  frameImg.src = "{{ website_item.custom_vto_frame_image}}"; // ensure same-origin or CORS-enabled
 
   // frame metadata defaults (you can update per SKU)
   let frameMeta = {
     frame_width_mm: Number(frameWidthEl.value) || 140,
-    asset_native_width_px: Number(assetWidthEl.value) || 1600,
     anchor_x_px: null,
     anchor_y_px: null
   };
@@ -309,6 +301,10 @@
     const L = avgPoints(leftEyeIdxs, lm);
     const R = avgPoints(rightEyeIdxs, lm);
     const NB = avgPoints(noseBridgeIdxs, lm);
+    // ---- compute native sizes and scales ----
+    const nativeAssetWidth =  frameImg.naturalWidth || frameImg.width || 1600;
+    const nativeAssetHeight = frameImg.naturalHeight || frameImg.height ||  Math.round(nativeAssetWidth * 0.6);
+
 
     // face width estimate (temples more stable)
     const leftTemple = toCanvas(lm[127]), rightTemple = toCanvas(lm[356]);
@@ -325,25 +321,22 @@
     let scaleX;
     if (ppm) {
       const desiredFrameWidthPx = frameMeta.frame_width_mm * ppm;
-      scaleX = desiredFrameWidthPx / (frameMeta.asset_native_width_px || frameImg.naturalWidth || frameImg.width || 1600);
+      scaleX = desiredFrameWidthPx / nativeAssetWidth
       status.textContent = `Detected PD scale: ${ppm.toFixed(2)} px/mm`;
     } else {
       // fallback: scale by faceWidth mapping (heuristic)
       const fallbackScaleFactor = 1.6;
       const desiredFrameWidthPx = faceWidth * fallbackScaleFactor;
-      scaleX = desiredFrameWidthPx / (frameMeta.asset_native_width_px || frameImg.naturalWidth || frameImg.width || 1600);
+      scaleX = desiredFrameWidthPx / nativeAssetWidth;
       status.textContent = `Using fallback scale (no iris landmarks)`;
     }
-
-    // vertical stretch factor from UI
-    const verticalStretch = Number(vStretch.value) || 1.0;
 
     // compute anchor: eye midpoint blended with nose bridge
     const anchorX = ((L.x + R.x) / 2) * 0.85 + NB.x * 0.15;
     const anchorY = ((L.y + R.y) / 2) * 0.85 + NB.y * 0.15;
 
-    const ASSET_VERTICAL_OFFSET = (offY && offY.value !== '') ? Number(offY.value) : -60;
-    const ASSET_HORIZONTAL_OFFSET = Number(offX.value) || -10;
+    const ASSET_VERTICAL_OFFSET = (offY && offY.value !== '') ? Number(offY.value) : 0;
+    const ASSET_HORIZONTAL_OFFSET = Number(offX.value) || -0;
 
     // smoothing
     smooth.tx = lerp(smooth.tx, anchorX, smoothFactor);
@@ -369,15 +362,10 @@
       ctx.fillText(`yaw?: angle:${currentAngleLabel()}`, 10, 50); // harmless placeholder
     }
 
-    // ---- compute native sizes and scales ----
-    const nativeAssetWidth = frameMeta.asset_native_width_px || frameImg.naturalWidth || frameImg.width || 1600;
-    const nativeAssetHeight = Math.round(nativeAssetWidth * 0.6);
-
-    const scaleY = smooth.scale * verticalStretch;
 
     // final on-screen sizes
     const w = nativeAssetWidth * smooth.scale;
-    const h = nativeAssetHeight * scaleY;
+    const h = nativeAssetHeight * smooth.scale;
 
     // compute anchor inside asset
     const anchorInAssetX = frameMeta.anchor_x_px || (nativeAssetWidth / 2);
@@ -394,7 +382,7 @@
     ctx.drawImage(
       frameImg,
       -anchorInAssetX * smooth.scale,     // dx (CSS pixels)
-      -anchorInAssetY * scaleY,           // dy
+      -anchorInAssetY * smooth.scale,           // dy
       w,                                  // dwidth (CSS pixels)
       h                                   // dheight
     );
@@ -403,6 +391,29 @@
     // update fit-feedback after drawing (smooth & stable)
     updateFitFeedback(lm);
   }
+
+  // --- compute native asset width robustly ---
+  function resolveNativeAssetWidth() {
+    // Try frameMeta first (explicit numeric), then frame image properties, then default
+    const m = frameMeta.asset_native_width_px;
+    const mNum = (m === undefined || m === null) ? NaN : Number(m);
+    const natural = Number(frameImg.naturalWidth || 0);
+    const wProp = Number(frameImg.width || 0);
+
+    let nativeAssetWidth = NaN;
+    if (isFinite(mNum) && mNum > 0) {
+      nativeAssetWidth = mNum;
+    } else if (isFinite(natural) && natural > 0) {
+      nativeAssetWidth = natural;
+    } else if (isFinite(wProp) && wProp > 0) {
+      nativeAssetWidth = wProp;
+    } else {
+      nativeAssetWidth = 1600; // final fallback
+    }
+
+    return nativeAssetWidth;
+  }
+
 
   // helper used in debug (placeholder, safe)
   function currentAngleLabel(){ return ''; }
@@ -463,43 +474,13 @@
     }
   }
 
-  // UI events
-  toggleMirrorBtn.addEventListener('click', () => {
-    // flip CSS transform on video only (canvas stays drawn mirrored by code)
-    if (video.style.transform.includes('scaleX(-1)')) {
-      video.style.transform = '';
-    } else {
-      video.style.transform = 'scaleX(-1)';
-    }
-  });
-
-  switchCamBtn.addEventListener('click', async () => {
-    const cams = await navigator.mediaDevices.enumerateDevices();
-    camList = cams.filter(d => d.kind === 'videoinput');
-    if (camList.length <= 1) return alert('No other camera found');
-    currentCamIndex = (currentCamIndex + 1) % camList.length;
-    await startCamera(camList[currentCamIndex].deviceId);
-  });
-
-  captureBtn.addEventListener('click', () => {
-    const dataUrl = canvas.toDataURL('image/png');
-    const w = window.open('');
-    w.document.body.style.margin = 0;
-    const img = new Image(); img.src = dataUrl; w.document.body.appendChild(img);
-  });
-
   // controls update handlers
   offY.addEventListener('input', () => {}); // live-used in draw
   offX.addEventListener('input', () => {});
-  vStretch.addEventListener('input', () => {});
-  dbg.addEventListener('change', ()=> { debugMode = dbg.checked; });
 
   // update frameMeta when inputs change
   frameWidthEl.addEventListener('input', ()=> {
     frameMeta.frame_width_mm = Number(frameWidthEl.value) || frameMeta.frame_width_mm;
-  });
-  assetWidthEl.addEventListener('input', ()=> {
-    frameMeta.asset_native_width_px = Number(assetWidthEl.value) || frameMeta.asset_native_width_px;
   });
 
   // fitCanvas: size container using intrinsic video aspect ratio and scale canvas backing store for DPR
