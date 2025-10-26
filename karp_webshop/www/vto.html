@@ -19,88 +19,267 @@
   <title>Virtual Try On</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body { font-family: system-ui, -apple-system, Roboto, "Segoe UI", sans-serif; margin: 12px; background:#f5f6f8; color:#111; }
-    .card { background:white; border-radius:10px; padding:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); max-width:980px; margin:auto; }
-    #container { position: relative; width: 720px; max-width:100%; margin:12px auto; }
-    video { position:absolute; left:0; top:0; width:100%; height:auto; border-radius:8px; object-fit:contain; background:black; transform:scaleX(-1); -webkit-transform:scaleX(-1); }
-    canvas#overlay { position:absolute; left:0; top:0; width:100%; height:100%; border-radius:8px; pointer-events:none; }
-    #controls { display:flex; gap:8px; margin-top:8px; align-items:center; justify-content:center; flex-wrap:wrap; }
+    :root{
+      --card-bg: #ffffff;
+      --muted: #666666;
+      --text: #111827;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Roboto, "Segoe UI", sans-serif;
+      margin: 12px;
+      background:#f5f6f8;
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius:10px;
+      padding:12px;
+      box-shadow:0 6px 18px rgba(20,20,40,0.06);
+      max-width:980px;
+      margin:auto;
+    }
+
+    /* Default desktop / tablet */
+    #container {
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      max-width: 720px;
+      margin: 12px auto;
+      position: relative;
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    /* Mobile: shorter video */
+    @media (max-width: 600px) {
+      #container {
+        aspect-ratio: 4 / 3; /* less height than 16:9 */
+        max-height: 220px;   /* optional hard cap */
+      }
+
+      #container canvas#overlay,
+      #container video {
+        height: 100%;
+        width: auto;
+      }
+    }
+    /* Extra small phones (optional tighter control) */
+    @media (max-width: 400px) {
+      #container {
+        aspect-ratio: 1 / 1; /* square view for ultra small screens */
+        max-height: 280px;
+      }
+    }
+
+    /* Video — hidden visually but still used for MediaPipe (Option A setup) */
+    #container video {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: auto;
+      height: 100%;
+      transform: translate(-50%, -50%) scaleX(-1);
+      -webkit-transform: translate(-50%, -50%) scaleX(-1);
+      object-fit: contain;
+      border-radius: 8px;
+
+      /* hide visually but keep it playing */
+      opacity: 0 !important;
+      pointer-events: none;
+      z-index: 1;
+    }
+  
+    #container canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      object-fit: cover; /* fills container; change to 'contain' if you prefer no crop */
+      transform: scaleX(-1);
+      -webkit-transform: scaleX(-1);
+    }
+
+    /* Canvas — visible layer centered on top of video */
+    #container canvas#overlay {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: auto;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 8px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Controls */
+    #controls {
+      display:flex;
+      gap:8px;
+      margin-top:8px;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
     button { padding:8px 12px; border-radius:6px; border:1px solid #ddd; background:white; cursor:pointer; }
     label { font-size:13px; color:#333; }
     input[type="range"] { width:160px; vertical-align:middle; }
     input[type="number"], select { width:120px; padding:6px; border-radius:6px; border:1px solid #ddd; }
-    #status { font-size:12px; color:#666; text-align:center; margin-top:6px; }
+    #status { font-size:12px; color:var(--muted); text-align:center; margin-top:6px; }
     .row { display:flex; gap:8px; align-items:center; justify-content:center; margin-top:8px; flex-wrap:wrap; }
-    .small { font-size:12px; color:#666; }
+    .small { font-size:12px; color:var(--muted); }
     #fitFeedback { font-weight:700; margin-top:8px; text-align:center; font-size:15px; }
-    #fitConfidence { color:#666; font-size:13px; text-align:center; margin-top:4px; }
-    .muted { color:#666; font-size:13px; }
+    #fitConfidence { color:var(--muted); font-size:13px; text-align:center; margin-top:4px; }
+    .muted { color:var(--muted); font-size:13px; }
+
+    /* mobile adjustments */
+    @media (max-width: 700px) {
+      .card { padding:10px; }
+      /* reserve less on very small screens */
+      #container { max-height: calc(100vh - 160px); }
+      /* make controls sticky so they're easy to reach */
+      #controls {
+        position: sticky;
+        bottom: 0;
+        z-index: 30;
+        padding: 8px 6px;
+        background: rgba(255,255,255,0.95);
+        border-top: 1px solid rgba(0,0,0,0.04);
+      }
+      input[type="number"], select { width:100px; }
+    }
+
+    /* VTO form responsive layout */
+    .vto-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    /* Each label+control combo */
+    .vto-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;       /* keeps controls usable on wide screens */
+    }
+
+    /* Input/select sizing */
+    .vto-field input[type="number"],
+    .vto-field select {
+      width: 220px;
+      max-width: 100%;
+      padding: 8px 10px;
+      box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    /* OR separator styling */
+    .vto-or {
+      color: #6b7280; /* muted */
+      font-weight: 600;
+      align-self: center;
+      margin: 0 6px;
+      white-space: nowrap;
+    }
+
+    /* Mobile: stack vertically, make fields full width */
+    @media (max-width: 600px) {
+      .vto-row {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+      }
+      .vto-field {
+        min-width: 0;
+        width: 100%;
+      }
+      .vto-field input[type="number"],
+      .vto-field select {
+        width: 100%;
+      }
+      .vto-or {
+        align-self: center;
+        margin: 0;
+      }
+    }
+
   </style>
 </head>
 <body>
   <div class="card">
-    <h1 style="font-size:18px; margin:0 0 10px 0;">Virtual Try On — {{ website_item.item_name or '' }}</h1>
+    <h1 style="font-size:18px; margin:0 0 10px 0;">Virtual Try On</h1>
 
     <div id="container">
       <video id="video" autoplay playsinline muted></video>
       <canvas id="overlay"></canvas>
     </div>
-
+    <div id="fitFeedback"></div>
     <div id="controls">
-      <label style="margin-left:8px;">Allign Vertical:
+      <label style="margin-left:8px; font-weight: bold;">Align Vertical:
         <input id="offY" type="range" min="-200" max="200" value="0" step="1">
       </label>
 
-      <label>Allign Horizontal:
+      <label style="font-weight: bold;">Align Horizontal:
         <input id="offX" type="range" min="-200" max="200" value="0" step="1">
       </label>
 
-      <div id="status">Status: <span id="statustxt">Initializing…</span></div>
+      <div id="status" style="font-weight: bold;">Status: <span id="statustxt">Initializing…</span></div>
     </div>
+
+    <div class="row vto-row">
+      <div class="vto-field">
+        <label for="pdInput" style="font-weight:600">Your PD (mm)</label>
+        <input id="pdInput" type="number" min="30" max="90" step="0.5" placeholder="e.g. 63">
+      </div>
+
+      <div class="vto-or">OR</div>
+
+      <div class="vto-field">
+        <label for="ageGroup" style="font-weight:600">Age group</label>
+        <select id="ageGroup">
+          <option value="auto"></option>
+          <option value="adult">Adult (14+)</option>
+          <option value="10-13">10–13</option>
+          <option value="6-9">6–9</option>
+          <option value="2-5">2–5</option>
+          <option value="<2">&lt;2</option>
+        </select>
+      </div>
+    </div>
+
 
     <div class="row" style="margin-top:10px;">
       <div style="display:flex;gap:8px;align-items:center;">
         <div>
-        <label>Your PD</label>
-        <input id="pdInput" type="number" min="30" max="50" step="0.5" placeholder="in mm">
-        </div>
-        <div class="muted">OR</div>
-        <div>
-        <label>Age group:
-          <select id="ageGroup">
-            <option value="auto"></option>
-            <option value="adult">Adult (14+)</option>
-            <option value="10-13">10–13</option>
-            <option value="6-9">6–9</option>
-            <option value="2-5">2–5</option>
-            <option value="<2">&lt;2</option>
-          </select>
-        </label>
-      </div>
-      </div>
-      
-    </div>
-
-    <div class="row" style="margin-top:10px;">
-     <div style="display:flex;gap:8px;align-items:center;">
-        <div>
-          <label>PD Used for Fitting Calibration:</label>
+          <label style="font-weight: bold;">PD Used for Fitting</label>
           <input id="computedPD" type="number" readonly style="width:30px;">
         </div>
       </div>
     </div>
 
-
-    <div class="row" style="justify-content:space-between; margin-top:10px; display: none;">
-      <div>
-        <input id="frameWidth" type="number" min="60" max="200" value="{{ website_item.custom_frame_width or 140 }}" step="1" readonly>
-      </div>
-    </div>
-
-    <div id="fitFeedback"></div>
+    
     <div id="fitConfidence"></div>
   </div>
 
+  <!-- MediaPipe FaceMesh via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
@@ -116,7 +295,6 @@
   const offX = document.getElementById('offX');
   const ageGroupEl = document.getElementById('ageGroup');
   const pdInput = document.getElementById('pdInput');
-  const frameWidthEl = document.getElementById('frameWidth');
   const computedPDEl = document.getElementById('computedPD');
   const fitEl = document.getElementById('fitFeedback');
   const confEl = document.getElementById('fitConfidence');
@@ -137,10 +315,10 @@
   // frame image
   const frameImg = new Image();
   frameImg.crossOrigin = "anonymous";
-  frameImg.src = "{{ website_item.custom_vto_frame_image}}";
+  frameImg.src = "{{ website_item.custom_vto_frame_image or '/assets/vto/Frame_F.png' }}";
 
   const frameMeta = {
-    frame_width_mm: Number(frameWidthEl.value) || 140,
+    frame_width_mm: Number({{ website_item.custom_frame_width or 140 }}) || 140,
     anchor_x_px: null,
     anchor_y_px: null
   };
@@ -206,7 +384,7 @@
     return pixelPD / usedPD; // px per mm
   }
 
-  // fit feedback buffers
+  // circular buffer for smoothing
   class CircularBuffer{ constructor(n){ this.n=n; this.arr=[]; } push(x){ this.arr.push(x); if(this.arr.length>this.n) this.arr.shift(); } avg(){ if(!this.arr.length) return null; return this.arr.reduce((a,b)=>a+b,0)/this.arr.length; } }
   const ppmBuffer = new CircularBuffer(6);
   const facePxBuffer = new CircularBuffer(6);
@@ -226,7 +404,7 @@
     if (!ppm || !facePx) { fitEl.textContent='Calculating…'; confEl.textContent=''; return; }
 
     const faceMM = facePx / ppm;
-    const frameMM = frameMeta.frame_width_mm || Number(frameWidthEl.value) || 140;
+    const frameMM = frameMeta.frame_width_mm || 140;
     const fitRatio = frameMM / faceMM;
     fitRatioBuffer.push(fitRatio);
     const fitRatioSm = fitRatioBuffer.avg();
@@ -234,21 +412,18 @@
     const t_small=0.95, t_slightSmall=0.98, t_slightLarge=1.03, t_large=1.05;
     let msg='', color='#111';
     if (fitRatioSm < t_small){ msg=`Too Small — Frame is ${(fitRatioSm*100).toFixed(0)}% of your face`; color='#d9534f'; }
-    //else if (fitRatioSm < t_slightSmall){ msg=`Slightly Small — frame ${(fitRatioSm*100).toFixed(0)}%`; color='#f0ad4e'; }
     else if (fitRatioSm <= t_large){ msg=`Good Fit — Frame is ${(fitRatioSm*100).toFixed(0)}% of your face` ; color='#5cb85c'; }
-    //else if (fitRatioSm <= t_large){ msg=`Slightly Oversized — frame ${(fitRatioSm*100).toFixed(0)}%`; color='#f0ad4e'; }
     else { msg=`Oversized — Frame is ${(fitRatioSm*100).toFixed(0)}% of your face`; color='#d9534f'; }
 
     fitEl.style.color = color;
     fitEl.textContent = msg;
 
-    // Computed PD display logic:
-    // Show the user-entered PD if present, otherwise show age default used.
+    // show the PD source (entered or age default)
     try {
       const typed = Number(pdInput.value);
       const shown = (isFinite(typed) && typed>0) ? typed : defaultPDForAgeGroup(ageGroupEl.value);
       computedPDEl.value = shown ? Number(shown.toFixed(1)) : '';
-      confEl.textContent = 'Using entered PD or age default.';
+      confEl.textContent = '';
     } catch(e) {
       computedPDEl.value = '';
       confEl.textContent = '';
@@ -258,7 +433,6 @@
   // draw frame using dynamic ppm derived from chosen PD + measured iris pixel distance
   function drawFrameWithRealScale(lm){
     if(!frameImg || !frameImg.complete || (frameImg.naturalWidth||0)===0) return;
-    const lw = overlay.clientWidth, lh = overlay.clientHeight;
 
     const L = avgPoints([33,7,163,144,145,153,154,155,133], lm);
     const R = avgPoints([263,249,390,373,374,380,381,382,362], lm);
@@ -270,7 +444,7 @@
     const ppm = computePPMFromPD(lm);
     if (!ppm || !isFinite(ppm) || ppm <= 0) return;
 
-    const desiredFrameWidthPx = (frameMeta.frame_width_mm || Number(frameWidthEl.value) || 140) * ppm;
+    const desiredFrameWidthPx = (frameMeta.frame_width_mm || 140) * ppm;
     const scale = desiredFrameWidthPx / nativeW;
 
     const anchorX = ((L.x + R.x)/2) * 0.85 + NB.x * 0.15;
@@ -289,6 +463,7 @@
     const anchorInAssetX = frameMeta.anchor_x_px || (nativeW / 2);
     const anchorInAssetY = frameMeta.anchor_y_px || (nativeH / 2);
 
+    // clear then draw overlay (video already drawn by faceMesh result)
     ctx.save();
     const drawX = overlay.clientWidth - (smooth.tx + ASSET_HORIZONTAL_OFFSET);
     const drawY = smooth.ty;
@@ -334,20 +509,40 @@
     }
   }
 
-  // fit canvas sizes
+  // === fitCanvas: responsive and capped to viewport so mobile doesn't overflow ===
   function fitCanvas() {
     const layoutWidth = containerEl.clientWidth || video.getBoundingClientRect().width || 640;
     const intrinsicVideoWidth = video.videoWidth || 0;
     const intrinsicVideoHeight = video.videoHeight || 0;
     let targetWidth, targetHeight;
-    if (intrinsicVideoWidth && intrinsicVideoHeight){ const aspect = intrinsicVideoWidth / intrinsicVideoHeight; targetWidth = layoutWidth; targetHeight = Math.round(targetWidth / aspect); }
-    else { targetWidth = layoutWidth; targetHeight = Math.round(targetWidth * 9 / 16); }
+
+    if (intrinsicVideoWidth && intrinsicVideoHeight) {
+      const aspect = intrinsicVideoWidth / intrinsicVideoHeight;
+      targetWidth = layoutWidth;
+      targetHeight = Math.round(targetWidth / aspect);
+    } else {
+      targetWidth = layoutWidth;
+      targetHeight = Math.round(targetWidth * 9 / 16);
+    }
+
+    // reserve space for title/controls; adjust reservePx to your header/control height if needed
+    const reservePx = 200;
+    const maxAvailable = Math.max(window.innerHeight - reservePx, 120);
+    if (targetHeight > maxAvailable) {
+      const aspect = targetWidth / targetHeight;
+      targetHeight = Math.round(maxAvailable);
+      targetWidth = Math.round(targetHeight * aspect);
+    }
+
     containerEl.style.height = targetHeight + 'px';
-    overlay.style.width = targetWidth + 'px';
-    overlay.style.height = targetHeight + 'px';
+    containerEl.style.maxHeight = maxAvailable + 'px';
+
     const dpr = window.devicePixelRatio || 1;
     overlay.width = Math.round(targetWidth * dpr);
     overlay.height = Math.round(targetHeight * dpr);
+    overlay.style.width = targetWidth + 'px';
+    overlay.style.height = targetHeight + 'px';
+
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
@@ -355,8 +550,7 @@
   video.addEventListener('loadedmetadata', fitCanvas);
   video.addEventListener('playing', fitCanvas);
 
-
-  // start camera
+  // start
   await startCamera();
   status.textContent = 'Ready';
 
