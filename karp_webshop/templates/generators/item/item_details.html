@@ -48,10 +48,12 @@
 		{% endif %}
 	{% endif %}
 
-	{% if vto_enabled and doc.custom_vto_enabled%}
-	  {% include "templates/generators/item/item_vto.html" %}
-	{% endif %}
+	
 
+	{% if vto_enabled and doc.custom_vto_enabled%}
+		{% include "templates/generators/item/item_vto.html" %}
+	{% endif %}
+	
 	{% if has_variants %}
 		<!-- configure template -->
 		{% include "templates/generators/item/item_configure.html" %}
@@ -60,7 +62,7 @@
 		<!-- add variant to cart -->
 		{% include "templates/generators/item/item_add_to_cart.html" %}
 	{% endif %}
-
+	
 	
 	</div>
 </div>
