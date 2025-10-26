@@ -1,4 +1,4 @@
-{% set item_code = (frappe.form_dict.item_code or '').strip() %}
+{% set item_code = (frappe.form_dict.ic or '').strip() %}
 {% set website_item = None %}
 
 {% if item_code %}
@@ -20,76 +20,121 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body { font-family: system-ui, -apple-system, Roboto, "Segoe UI", sans-serif; margin: 12px; background:#f5f6f8; color:#111; }
-    h1 { font-size:18px; margin:0 0 8px 0; }
-    .card { background:white; border-radius:10px; padding:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); max-width:920px; margin:auto; }
+    .card { background:white; border-radius:10px; padding:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); max-width:980px; margin:auto; }
     #container { position: relative; width: 720px; max-width:100%; margin:12px auto; }
-    video { position: absolute; left: 0; top: 0; width: 100%; height: auto; border-radius: 8px; object-fit: contain; background: black; transform: scaleX(-1); -webkit-transform: scaleX(-1);}
-    canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; border-radius: 8px; pointer-events: none; }
+    video { position:absolute; left:0; top:0; width:100%; height:auto; border-radius:8px; object-fit:contain; background:black; transform:scaleX(-1); -webkit-transform:scaleX(-1); }
+    canvas#overlay { position:absolute; left:0; top:0; width:100%; height:100%; border-radius:8px; pointer-events:none; }
     #controls { display:flex; gap:8px; margin-top:8px; align-items:center; justify-content:center; flex-wrap:wrap; }
     button { padding:8px 12px; border-radius:6px; border:1px solid #ddd; background:white; cursor:pointer; }
     label { font-size:13px; color:#333; }
     input[type="range"] { width:160px; vertical-align:middle; }
-    input[type="number"] { width:80px; padding:6px; border-radius:6px; border:1px solid #ddd; }
+    input[type="number"], select { width:120px; padding:6px; border-radius:6px; border:1px solid #ddd; }
     #status { font-size:12px; color:#666; text-align:center; margin-top:6px; }
     .row { display:flex; gap:8px; align-items:center; justify-content:center; margin-top:8px; flex-wrap:wrap; }
     .small { font-size:12px; color:#666; }
     #fitFeedback { font-weight:700; margin-top:8px; text-align:center; font-size:15px; }
     #fitConfidence { color:#666; font-size:13px; text-align:center; margin-top:4px; }
+    .muted { color:#666; font-size:13px; }
   </style>
 </head>
 <body>
-<div class="card">
-  <h1>Virtual Try On - {{ website_item.item_name}}</h1>
+  <div class="card">
+    <h1 style="font-size:18px; margin:0 0 10px 0;">Virtual Try On — {{ website_item.item_name or '' }}</h1>
 
-  <div id="container">
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="overlay"></canvas>
-  </div>
+    <div id="container">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="overlay"></canvas>
+    </div>
 
-  <div id="controls">
-    <label style="margin-left:8px;">Vertical Adjustment:
-      <input id="offY" type="range" min="-200" max="200" value="0" step="1">
-    </label>
+    <div id="controls">
+      <label style="margin-left:8px;">Allign Vertical:
+        <input id="offY" type="range" min="-200" max="200" value="0" step="1">
+      </label>
 
-    <label>Horizontal Adjustment:
-      <input id="offX" type="range" min="-200" max="200" value="0" step="1">
-    </label>
+      <label>Allign Horizontal:
+        <input id="offX" type="range" min="-200" max="200" value="0" step="1">
+      </label>
 
-    <div id="status">Status: <span id="statustxt">Initializing…</span></div>
+      <div id="status">Status: <span id="statustxt">Initializing…</span></div>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div>
+        <label>Your PD</label>
+        <input id="pdInput" type="number" min="30" max="50" step="0.5" placeholder="in mm">
+        </div>
+        <div class="muted">OR</div>
+        <div>
+        <label>Age group:
+          <select id="ageGroup">
+            <option value="auto"></option>
+            <option value="adult">Adult (14+)</option>
+            <option value="10-13">10–13</option>
+            <option value="6-9">6–9</option>
+            <option value="2-5">2–5</option>
+            <option value="<2">&lt;2</option>
+          </select>
+        </label>
+      </div>
+      </div>
+      
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+     <div style="display:flex;gap:8px;align-items:center;">
+        <div>
+          <label>PD Used for Fitting Calibration:</label>
+          <input id="computedPD" type="number" readonly style="width:30px;">
+        </div>
+      </div>
+    </div>
+
+
+    <div class="row" style="justify-content:space-between; margin-top:10px; display: none;">
+      <div>
+        <input id="frameWidth" type="number" min="60" max="200" value="{{ website_item.custom_frame_width or 140 }}" step="1" readonly>
+      </div>
+    </div>
+
     <div id="fitFeedback"></div>
     <div id="fitConfidence"></div>
   </div>
 
-  <div class="row" style="justify-content:space-between;">
-    <div>
-      <label>Enter PD (mm):</label>
-      <input id="pdInput" type="number" min="40" max="80" step="0.5" placeholder="eg. 63">
-    </div>
-
-    <div>
-      <label>Frame width (mm):</label>
-      <input id="frameWidth" type="number" min="80" max="160" value="{{website_item.custom_frame_width }}" step="1" readonly> 
-    </div>
-  </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <script>
 (async function(){
+  // DOM elements
   const video = document.getElementById('video');
-  const canvas = document.getElementById('overlay');
+  const overlay = document.getElementById('overlay');
   const containerEl = document.getElementById('container');
-  const ctx = canvas.getContext('2d');
+  const ctx = overlay.getContext('2d');
   const status = document.getElementById('statustxt');
-  const pdInput = document.getElementById('pdInput');
-  const frameWidthEl = document.getElementById('frameWidth');
   const offY = document.getElementById('offY');
   const offX = document.getElementById('offX');
-
+  const ageGroupEl = document.getElementById('ageGroup');
+  const pdInput = document.getElementById('pdInput');
+  const frameWidthEl = document.getElementById('frameWidth');
+  const computedPDEl = document.getElementById('computedPD');
   const fitEl = document.getElementById('fitFeedback');
   const confEl = document.getElementById('fitConfidence');
 
+  // constants & landmarks
+  const DEFAULT_PD_MM = 63;
+  const LEFT_IRIS = [468,469,470,471,472];
+  const RIGHT_IRIS = [473,474,475,476,477];
+
+  // state
+  let latestLandmarks = null;
+
+  // smoothing helper
+  function lerp(a,b,t){ return a + (b-a)*t; }
+  const smooth = { tx:0, ty:0, rot:0, scale:1 };
+  const SMOOTH_FACTOR = 0.22;
+
+  // frame image
   const frameImg = new Image();
   frameImg.crossOrigin = "anonymous";
   frameImg.src = "{{ website_item.custom_vto_frame_image}}";
@@ -100,174 +145,222 @@
     anchor_y_px: null
   };
 
-  const DEFAULT_PD_MM = 63;
-  const LEFT_IRIS = [468,469,470,471,472];
-  const RIGHT_IRIS = [473,474,475,476,477];
+  // mediapipe
+  const faceMesh = new FaceMesh({ locateFile: (file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
+  faceMesh.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.6, minTrackingConfidence:0.5 });
 
-  const smooth = { tx:0, ty:0, rot:0, scale:1 };
-  const smoothFactor = 0.22;
-
-  const faceMesh = new FaceMesh({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-  });
-  faceMesh.setOptions({
-    maxNumFaces: 1,
-    refineLandmarks: true,
-    minDetectionConfidence: 0.6,
-    minTrackingConfidence: 0.5
-  });
-
-  function toCanvas(p){ 
-    const w = canvas.clientWidth || containerEl.clientWidth;
-    const h = canvas.clientHeight || containerEl.clientHeight;
+  // helpers: convert normalized landmark to CSS canvas coords
+  function toCssCanvas(p){
+    const w = overlay.clientWidth || containerEl.clientWidth;
+    const h = overlay.clientHeight || containerEl.clientHeight;
     return { x: p.x * w, y: p.y * h };
   }
-
   function avgPoints(indices, lm){
-    const w = canvas.clientWidth || containerEl.clientWidth;
-    const h = canvas.clientHeight || containerEl.clientHeight;
+    const w = overlay.clientWidth || containerEl.clientWidth;
+    const h = overlay.clientHeight || containerEl.clientHeight;
     let sx=0, sy=0;
     for(const i of indices){ sx += lm[i].x * w; sy += lm[i].y * h; }
     return { x: sx/indices.length, y: sy/indices.length };
   }
 
-  function computeUserPDmm(lm){
-    try {
-      const Liris = avgPoints(LEFT_IRIS, lm);
-      const Riris = avgPoints(RIGHT_IRIS, lm);
-      const pixelPD = Math.hypot(Riris.x - Liris.x, Riris.y - Liris.y);
-      const userPDmm = Number(pdInput.value) || DEFAULT_PD_MM;
-      return userPDmm;
-    } catch(e){ return DEFAULT_PD_MM; }
+  // age defaults
+  function defaultPDForAgeGroup(ageGroup){
+    switch(ageGroup){
+      case 'adult': return 63;
+      case '10-13': return 60;
+      case '6-9': return 56;
+      case '2-5': return 49;
+      case '<2': return 46;
+      default: return DEFAULT_PD_MM;
+    }
   }
 
+  // compute face pixel width (temple-to-temple)
   function computeFacePxWidth(lm){
     try {
-      const LT = toCanvas(lm[127]);
-      const RT = toCanvas(lm[356]);
+      const LT = toCssCanvas(lm[127]);
+      const RT = toCssCanvas(lm[356]);
       return Math.hypot(RT.x - LT.x, RT.y - LT.y);
-    } catch(e){ return null; }
+    } catch(e){
+      try { const L = toCssCanvas(lm[33]); const R = toCssCanvas(lm[263]); return Math.hypot(R.x - L.x, R.y - L.y); } catch(e){ return null; }
+    }
   }
 
+  // compute ppm (px per mm) for current frame:
+  // priority:
+  // 1) use user-entered PD if provided
+  // 2) else use age-group default
+  // returns pixels-per-mm for current frame based on measured iris pixel distance
+  function computePPMFromPD(lm){
+    let pixelPD = null;
+    try {
+      const L = avgPoints(LEFT_IRIS, lm);
+      const R = avgPoints(RIGHT_IRIS, lm);
+      pixelPD = Math.hypot(R.x - L.x, R.y - L.y);
+    } catch(e){ return null; }
+
+    const typed = Number(pdInput.value);
+    const usedPD = (isFinite(typed) && typed > 0) ? typed : defaultPDForAgeGroup(ageGroupEl.value);
+
+    if (!pixelPD || !usedPD) return null;
+    return pixelPD / usedPD; // px per mm
+  }
+
+  // fit feedback buffers
+  class CircularBuffer{ constructor(n){ this.n=n; this.arr=[]; } push(x){ this.arr.push(x); if(this.arr.length>this.n) this.arr.shift(); } avg(){ if(!this.arr.length) return null; return this.arr.reduce((a,b)=>a+b,0)/this.arr.length; } }
+  const ppmBuffer = new CircularBuffer(6);
+  const facePxBuffer = new CircularBuffer(6);
+  const fitRatioBuffer = new CircularBuffer(6);
+
   function updateFitFeedback(lm){
-    if(!lm){ fitEl.textContent=''; confEl.textContent=''; return; }
-    const userPDmm = computeUserPDmm(lm);
-    const pixelPD = Math.hypot(avgPoints(RIGHT_IRIS,lm).x - avgPoints(LEFT_IRIS,lm).x, avgPoints(RIGHT_IRIS,lm).y - avgPoints(LEFT_IRIS,lm).y);
-    const ppm = pixelPD / userPDmm;
-    const facePx = computeFacePxWidth(lm);
+    if (!lm){ fitEl.textContent=''; confEl.textContent=''; computedPDEl.value=''; return; }
+
+    const ppmNow = computePPMFromPD(lm);
+    const facePxNow = computeFacePxWidth(lm);
+    if (ppmNow) ppmBuffer.push(ppmNow);
+    if (facePxNow) facePxBuffer.push(facePxNow);
+
+    const ppm = ppmBuffer.avg();
+    const facePx = facePxBuffer.avg();
+
+    if (!ppm || !facePx) { fitEl.textContent='Calculating…'; confEl.textContent=''; return; }
+
     const faceMM = facePx / ppm;
     const frameMM = frameMeta.frame_width_mm || Number(frameWidthEl.value) || 140;
     const fitRatio = frameMM / faceMM;
+    fitRatioBuffer.push(fitRatio);
+    const fitRatioSm = fitRatioBuffer.avg();
 
+    const t_small=0.95, t_slightSmall=0.98, t_slightLarge=1.03, t_large=1.05;
     let msg='', color='#111';
-    if(fitRatio<0.92){ msg=`Too Small — frame is ${(fitRatio*100).toFixed(0)}% of face width`; color='#d9534f'; }
-    else if(fitRatio<0.98){ msg=`Slightly Small — frame is ${(fitRatio*100).toFixed(0)}% of face width`; color='#f0ad4e'; }
-    else if(fitRatio<=1.03){ msg=`Fits Perfect — frame is ${(fitRatio*100).toFixed(0)}% of face width`; color='#5cb85c'; }
-    else if(fitRatio<=1.08){ msg=`Slightly Oversized — frame is ${(fitRatio*100).toFixed(0)}% of face width`; color='#f0ad4e'; }
-    else{ msg=`Oversized — frame is ${(fitRatio*100).toFixed(0)}% of face width`; color='#d9534f'; }
+    if (fitRatioSm < t_small){ msg=`Too Small — Frame is ${(fitRatioSm*100).toFixed(0)}% of your face`; color='#d9534f'; }
+    //else if (fitRatioSm < t_slightSmall){ msg=`Slightly Small — frame ${(fitRatioSm*100).toFixed(0)}%`; color='#f0ad4e'; }
+    else if (fitRatioSm <= t_large){ msg=`Good Fit — Frame is ${(fitRatioSm*100).toFixed(0)}% of your face` ; color='#5cb85c'; }
+    //else if (fitRatioSm <= t_large){ msg=`Slightly Oversized — frame ${(fitRatioSm*100).toFixed(0)}%`; color='#f0ad4e'; }
+    else { msg=`Oversized — Frame is ${(fitRatioSm*100).toFixed(0)}% of your face`; color='#d9534f'; }
 
-    fitEl.style.color=color;
-    fitEl.textContent=msg;
+    fitEl.style.color = color;
+    fitEl.textContent = msg;
 
-    const usedUserPD = Boolean(pdInput.value && Number(pdInput.value)>0);
-    const confMsg = usedUserPD ? 'High confidence (using your PD).' : 'Medium confidence (estimated PD used).';
-    confEl.textContent = confMsg;
+    // Computed PD display logic:
+    // Show the user-entered PD if present, otherwise show age default used.
+    try {
+      const typed = Number(pdInput.value);
+      const shown = (isFinite(typed) && typed>0) ? typed : defaultPDForAgeGroup(ageGroupEl.value);
+      computedPDEl.value = shown ? Number(shown.toFixed(1)) : '';
+      confEl.textContent = 'Using entered PD or age default.';
+    } catch(e) {
+      computedPDEl.value = '';
+      confEl.textContent = '';
+    }
   }
 
-  function drawFrame(lm){
-    if(!frameImg || !frameImg.complete || frameImg.naturalWidth===0) return;
+  // draw frame using dynamic ppm derived from chosen PD + measured iris pixel distance
+  function drawFrameWithRealScale(lm){
+    if(!frameImg || !frameImg.complete || (frameImg.naturalWidth||0)===0) return;
+    const lw = overlay.clientWidth, lh = overlay.clientHeight;
 
     const L = avgPoints([33,7,163,144,145,153,154,155,133], lm);
     const R = avgPoints([263,249,390,373,374,380,381,382,362], lm);
     const NB = avgPoints([6,197,195,5,4], lm);
 
-    const nativeW = frameImg.naturalWidth || 1600;
+    const nativeW = frameImg.naturalWidth || frameImg.width || 1600;
     const nativeH = frameImg.naturalHeight || Math.round(nativeW*0.6);
 
-    const pixelPD = Math.hypot(R.x-L.x,R.y-L.y);
-    const userPDmm = computeUserPDmm(lm);
-    const ppm = pixelPD / userPDmm;
+    const ppm = computePPMFromPD(lm);
+    if (!ppm || !isFinite(ppm) || ppm <= 0) return;
 
-    const desiredFrameWidthPx = frameMeta.frame_width_mm * ppm;
+    const desiredFrameWidthPx = (frameMeta.frame_width_mm || Number(frameWidthEl.value) || 140) * ppm;
     const scale = desiredFrameWidthPx / nativeW;
 
-    const anchorX = ((L.x+R.x)/2)*0.85 + NB.x*0.15;
-    const anchorY = ((L.y+R.y)/2)*0.85 + NB.y*0.15;
+    const anchorX = ((L.x + R.x)/2) * 0.85 + NB.x * 0.15;
+    const anchorY = ((L.y + R.y)/2) * 0.85 + NB.y * 0.15;
 
     const ASSET_VERTICAL_OFFSET = Number(offY.value) || 0;
     const ASSET_HORIZONTAL_OFFSET = Number(offX.value) || 0;
 
-    smooth.tx = smooth.tx*(1-smoothFactor)+anchorX*smoothFactor;
-    smooth.ty = smooth.ty*(1-smoothFactor)+ (anchorY+ASSET_VERTICAL_OFFSET)*smoothFactor;
-    smooth.rot = smooth.rot*(1-smoothFactor)+Math.atan2(R.y-L.y,R.x-L.x)*smoothFactor;
-    smooth.scale = smooth.scale*(1-smoothFactor)+scale*smoothFactor;
+    smooth.tx = lerp(smooth.tx, anchorX, SMOOTH_FACTOR);
+    smooth.ty = lerp(smooth.ty, anchorY + ASSET_VERTICAL_OFFSET, SMOOTH_FACTOR);
+    smooth.rot = lerp(smooth.rot, Math.atan2(R.y - L.y, R.x - L.x), SMOOTH_FACTOR);
+    smooth.scale = lerp(smooth.scale, scale, SMOOTH_FACTOR);
 
-    const w = nativeW*smooth.scale;
-    const h = nativeH*smooth.scale;
-    const anchorInAssetX = frameMeta.anchor_x_px || nativeW/2;
-    const anchorInAssetY = frameMeta.anchor_y_px || nativeH/2;
+    const w = nativeW * smooth.scale;
+    const h = nativeH * smooth.scale;
+    const anchorInAssetX = frameMeta.anchor_x_px || (nativeW / 2);
+    const anchorInAssetY = frameMeta.anchor_y_px || (nativeH / 2);
 
     ctx.save();
-    const drawX = canvas.clientWidth - (smooth.tx + ASSET_HORIZONTAL_OFFSET);
+    const drawX = overlay.clientWidth - (smooth.tx + ASSET_HORIZONTAL_OFFSET);
     const drawY = smooth.ty;
     ctx.translate(drawX, drawY);
     ctx.rotate(-smooth.rot);
-    ctx.drawImage(frameImg, -anchorInAssetX*smooth.scale, -anchorInAssetY*smooth.scale, w, h);
+    ctx.drawImage(frameImg, -anchorInAssetX * smooth.scale, -anchorInAssetY * smooth.scale, w, h);
     ctx.restore();
 
     updateFitFeedback(lm);
   }
 
-  faceMesh.onResults((results)=>{
-    const cssW=canvas.clientWidth, cssH=canvas.clientHeight;
+  // faceMesh results
+  faceMesh.onResults((results) => {
+    const cssW = overlay.clientWidth, cssH = overlay.clientHeight;
     ctx.clearRect(0,0,cssW,cssH);
-    ctx.save();
-    ctx.scale(-1,1);
-    ctx.drawImage(results.image,-cssW,0,cssW,cssH);
-    ctx.restore();
-
-    if(results.multiFaceLandmarks && results.multiFaceLandmarks.length>0){
-      drawFrame(results.multiFaceLandmarks[0]);
-      status.textContent='Face detected';
-    }else{
-      status.textContent='No face detected';
+    if (results.image) {
+      ctx.save(); ctx.scale(-1,1); ctx.drawImage(results.image, -cssW, 0, cssW, cssH); ctx.restore();
+    }
+    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+      latestLandmarks = results.multiFaceLandmarks[0];
+      drawFrameWithRealScale(latestLandmarks);
+      status.textContent = 'Face detected';
+    } else {
+      latestLandmarks = null;
+      status.textContent = 'No face detected';
       updateFitFeedback(null);
     }
   });
 
-  let mpCamera=null;
-  async function startCamera(deviceId){
-    if(mpCamera) mpCamera.stop();
-    try{
-      const stream = await navigator.mediaDevices.getUserMedia({video:{width:1280,height:720,facingMode: deviceId?undefined:'user',deviceId: deviceId?{exact:deviceId}:undefined},audio:false});
-      video.srcObject=stream;
-      mpCamera = new Camera(video,{onFrame:async()=>{await faceMesh.send({image:video});},width:1280,height:720});
+  // camera start
+  let mpCamera = null;
+  async function startCamera(deviceId = undefined){
+    if (mpCamera) mpCamera.stop();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video:{ width:1280, height:720, facingMode: deviceId?undefined:'user', deviceId: deviceId?{exact:deviceId}:undefined }, audio:false });
+      video.srcObject = stream;
+      mpCamera = new Camera(video, { onFrame: async()=>{ await faceMesh.send({ image: video }); }, width:1280, height:720 });
       mpCamera.start();
-    }catch(e){ console.error(e); status.textContent='Camera error'; }
+      status.textContent = 'Camera started';
+    } catch(err){
+      console.error(err);
+      status.textContent = 'Camera error';
+    }
   }
 
-  function fitCanvas(){
+  // fit canvas sizes
+  function fitCanvas() {
     const layoutWidth = containerEl.clientWidth || video.getBoundingClientRect().width || 640;
     const intrinsicVideoWidth = video.videoWidth || 0;
     const intrinsicVideoHeight = video.videoHeight || 0;
-    let targetWidth,targetHeight;
-    if(intrinsicVideoWidth && intrinsicVideoHeight){ const aspect = intrinsicVideoWidth/intrinsicVideoHeight; targetWidth=layoutWidth; targetHeight=Math.round(targetWidth/aspect);}
-    else{ targetWidth=layoutWidth; targetHeight=Math.round(targetWidth*9/16);}
-    containerEl.style.height=targetHeight+'px';
+    let targetWidth, targetHeight;
+    if (intrinsicVideoWidth && intrinsicVideoHeight){ const aspect = intrinsicVideoWidth / intrinsicVideoHeight; targetWidth = layoutWidth; targetHeight = Math.round(targetWidth / aspect); }
+    else { targetWidth = layoutWidth; targetHeight = Math.round(targetWidth * 9 / 16); }
+    containerEl.style.height = targetHeight + 'px';
+    overlay.style.width = targetWidth + 'px';
+    overlay.style.height = targetHeight + 'px';
     const dpr = window.devicePixelRatio || 1;
-    canvas.width=Math.round(targetWidth*dpr);
-    canvas.height=Math.round(targetHeight*dpr);
-    canvas.style.width=targetWidth+'px';
-    canvas.style.height=targetHeight+'px';
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+    overlay.width = Math.round(targetWidth * dpr);
+    overlay.height = Math.round(targetHeight * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
+  window.addEventListener('resize', fitCanvas);
   video.addEventListener('loadedmetadata', fitCanvas);
   video.addEventListener('playing', fitCanvas);
-  window.addEventListener('resize', fitCanvas);
+
+
+  // start camera
   await startCamera();
+  status.textContent = 'Ready';
+
 })();
 </script>
-</div>
 </body>
 </html>

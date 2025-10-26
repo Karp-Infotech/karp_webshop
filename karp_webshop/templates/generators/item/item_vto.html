@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     tryBtn.addEventListener('click', function(){
         // Set iframe source to your VTO HTML
-        modalIframe.src = '/vto.html';
+        modalIframe.src = '/vto.html?ic={{ doc.item_code }}';
         // Show Bootstrap modal
         var vtoModal = new bootstrap.Modal(document.getElementById('vtoModal'));
         vtoModal.show();
