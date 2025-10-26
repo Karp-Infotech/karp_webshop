@@ -39,7 +39,18 @@
 		
 	</p>
 
-	{% include "templates/generators/item/item_vto.html" %}
+	{# --- Include item_vto.html only if Karp Webshop Settings has VTO Enabled checked --- #}
+	{% set vto_enabled = False %}
+	{% if frappe.db.exists('Karp Webshop Settings') %}
+		{% set settings_doc = frappe.get_doc('Karp Webshop Settings') %}
+		{% if settings_doc %}
+			{% set vto_enabled = settings_doc.get('vto_enabled') or settings_doc.get('VTO Enabled') or False %}
+		{% endif %}
+	{% endif %}
+
+	{% if vto_enabled and doc.custom_vto_enabled%}
+	  {% include "templates/generators/item/item_vto.html" %}
+	{% endif %}
 
 	{% if has_variants %}
 		<!-- configure template -->

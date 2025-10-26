@@ -8,7 +8,8 @@
   "b2c_loyalty_program",
   "b2b_loyalty_program",
   "enable_guest_checkout",
-  "default_web_warehouse"
+  "default_web_warehouse",
+  "vto_enabled"
  ],
  "fields": [
   {
@@ -37,12 +38,18 @@
    "label": "Default Web Warehouse",
    "options": "Warehouse",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "vto_enabled",
+   "fieldtype": "Check",
+   "label": "VTO Enabled"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-09-22 23:05:02.075946",
+ "modified": "2025-10-26 10:44:49.158920",
  "modified_by": "Administrator",
  "module": "Karp Webshop",
  "name": "Karp Webshop Settings",

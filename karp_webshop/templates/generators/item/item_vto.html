@@ -1,5 +1,59 @@
 <!-- TRY ON BUTTON -->
-<button class="btn btn-primary" id="tryOnBtn">Try ON</button>
+<style>
+    .vto-section {
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  max-width: 480px;
+  margin: 1.5rem auto;
+  transition: all 0.3s ease-in-out;
+}
+
+.vto-section:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.btn-vto {
+  background: linear-gradient(90deg, #4f46e5, #3b82f6);
+  border: none;
+  border-radius: 50px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn-vto:hover {
+  background: linear-gradient(90deg, #4338ca, #2563eb);
+  transform: scale(1.03);
+}
+
+.btn-vto i {
+  margin-right: 8px;
+}
+
+.vto-description {
+  color: #374151;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-top: 0.75rem;
+}
+
+</style>
+
+<div class="vto-section text-center my-4">
+  <button class="btn btn-vto" id="tryOnBtn">
+    <i class="fa fa-camera"></i> Try On
+  </button>
+  <div class="vto-description mt-2">
+    Try this frame virtually on your face. Our AI will also tell you if this frame fits your face correctly.
+  </div>
+</div>
+
 
 <!-- VTO MODAL -->
 <div class="modal fade" id="vtoModal" tabindex="-1" aria-labelledby="vtoModalLabel" aria-hidden="true">
