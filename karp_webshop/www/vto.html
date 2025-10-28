@@ -308,14 +308,14 @@
   let latestLandmarks = null;
 
   // smoothing helper
-  function lerp(a,b,t){ return a + (b-a)*t; }
+  function lerp(a,b,t){ return a + (b-a)*t; };
   const smooth = { tx:0, ty:0, rot:0, scale:1 };
   const SMOOTH_FACTOR = 0.22;
 
   // frame image
   const frameImg = new Image();
   frameImg.crossOrigin = "anonymous";
-  frameImg.src = "{{ website_item.custom_vto_frame_image or '/assets/vto/Frame_F.png' }}";
+  frameImg.src = "{{ website_item.custom_vto_frame_image}}";
 
   const frameMeta = {
     frame_width_mm: Number({{ website_item.custom_frame_width or 140 }}) || 140,
@@ -409,11 +409,11 @@
     fitRatioBuffer.push(fitRatio);
     const fitRatioSm = fitRatioBuffer.avg();
 
-    const t_small=0.95, t_slightSmall=0.98, t_slightLarge=1.03, t_large=1.05;
+    const t_small=1, t_slightSmall=0.98, t_slightLarge=1.03, t_large=1.15;
     let msg='', color='#111';
-    if (fitRatioSm < t_small){ msg=`Too Small — Frame is ${(fitRatioSm*100).toFixed(0)}% of your face`; color='#d9534f'; }
-    else if (fitRatioSm <= t_large){ msg=`Good Fit — Frame is ${(fitRatioSm*100).toFixed(0)}% of your face` ; color='#5cb85c'; }
-    else { msg=`Oversized — Frame is ${(fitRatioSm*100).toFixed(0)}% of your face`; color='#d9534f'; }
+    if (fitRatioSm < t_small){ msg=`Too Small — This Frame will look small on your face`; color='#d9534f'; }
+    else if (fitRatioSm <= t_large){ msg=`Good Fit — This Frame will fit good your face` ; color='#5cb85c'; }
+    else { msg=`Oversized — This Frame will look big on your face`; color='#d9534f'; }
 
     fitEl.style.color = color;
     fitEl.textContent = msg;
