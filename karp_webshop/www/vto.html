@@ -1,16 +1,13 @@
-{% set item_code = (frappe.form_dict.ic or '').strip() %}
-{% set website_item = None %}
+{% set karp_webshop_settings = frappe.get_doc("Karp Webshop Settings") %}
 
-{% if item_code %}
-  {% set wi_name = frappe.db.get_value('Website Item', {'item_code': item_code}, 'name') %}
-  {% if wi_name %}
-    {% set website_item = frappe.get_doc('Website Item', wi_name) %}
-  {% else %}
-    {% if frappe.db.exists('Website Item', item_code) %}
-      {% set website_item = frappe.get_doc('Website Item', item_code) %}
-    {% endif %}
-  {% endif %}
-{% endif %}
+<script>
+  const KARP_VTO_SETTINGS = {
+    adult_eg_default_width: {{ karp_webshop_settings.adult_eg_default_width }},
+    adult_sg_default_width: {{ karp_webshop_settings.adult_sg_default_width }},
+    kids_eg_default_width:  {{ karp_webshop_settings.kids_eg_default_width }},
+    kids_sg_default_width:  {{ karp_webshop_settings.kids_sg_default_width}}
+  };
+</script>
 
 <!doctype html>
 <html>
@@ -312,16 +309,73 @@
   const smooth = { tx:0, ty:0, rot:0, scale:1 };
   const SMOOTH_FACTOR = 0.22;
 
-  // frame image
+  // FRAME: client-side loader (Option A)
+  // default fallback image (keeps UI responsive until the real asset is fetched)
   const frameImg = new Image();
   frameImg.crossOrigin = "anonymous";
-  frameImg.src = "{{ website_item.custom_vto_frame_image}}";
 
+  // frame meta: initialize with server-side sensible default (avoids NaN if fetch fails)
   const frameMeta = {
-    frame_width_mm: Number({{ website_item.custom_frame_width or 140 }}) || 140,
+    frame_width_mm: 140,
     anchor_x_px: null,
     anchor_y_px: null
   };
+
+  // client-side fetch: read `ic` query param and fetch Website Item record per request
+  (async function fetchWebsiteItemIfRequested() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const ic = (params.get('ic') || '').trim();
+      if (!ic) return;
+
+      // build API query to fetch required fields only
+      const filter = encodeURIComponent(JSON.stringify([["Website Item", "item_code", "=", ic]]));
+      const fields = encodeURIComponent(JSON.stringify(["custom_vto_frame_image", "custom_frame_width", "item_group"]));
+      const url = `/api/resource/Website Item?filters=${filter}&fields=${fields}&limit_page_length=1`;
+
+      const res = await fetch(url, { credentials: 'same-origin' });
+      if (!res.ok) {
+        console.warn('VTO: could not fetch Website Item', res.status);
+        return;
+      }
+
+      const json = await res.json();
+      const rec = (json.data && json.data[0]) || null;
+      if (!rec) return;
+
+      // apply values if present
+      if (rec.custom_vto_frame_image) {
+        frameImg.src = rec.custom_vto_frame_image; // make sure frameImg is defined globally
+      }
+
+      if (rec.custom_frame_width) {
+        const w = Number(rec.custom_frame_width);
+        if (!Number.isNaN(w) && w > 0) frameMeta.frame_width_mm = w;
+      } else {
+        // Set Defaults
+        let frame_width_default = 140; // fallback
+
+        if (rec.item_group === "Adult Eyeglasses") {
+          frame_width_default = Number(KARP_VTO_SETTINGS.adult_eg_default_width );
+        } 
+        else if (rec.item_group === "Adult Sunglasses") {
+          frame_width_default = Number(KARP_VTO_SETTINGS.adult_sg_default_width );
+        } 
+        else if (rec.item_group === "Kids Eyeglasses") {
+          frame_width_default = Number(KARP_VTO_SETTINGS.kids_eg_default_width )
+        } 
+        else if (rec.item_group === "Kids Sunglasses") {
+          frame_width_default = Number(KARP_VTO_SETTINGS.kids_sg_default_width);
+        }
+
+        frameMeta.frame_width_mm = frame_width_default;
+      }
+
+    } catch (e) {
+      console.warn('VTO: error fetching Website Item', e);
+    }
+  })();
+
 
   // mediapipe
   const faceMesh = new FaceMesh({ locateFile: (file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
@@ -404,7 +458,7 @@
     if (!ppm || !facePx) { fitEl.textContent='Calculating…'; confEl.textContent=''; return; }
 
     const faceMM = facePx / ppm;
-    const frameMM = frameMeta.frame_width_mm || 140;
+    const frameMM = frameMeta.frame_width_mm;
     const fitRatio = frameMM / faceMM;
     fitRatioBuffer.push(fitRatio);
     const fitRatioSm = fitRatioBuffer.avg();
@@ -444,7 +498,7 @@
     const ppm = computePPMFromPD(lm);
     if (!ppm || !isFinite(ppm) || ppm <= 0) return;
 
-    const desiredFrameWidthPx = (frameMeta.frame_width_mm || 140) * ppm;
+    const desiredFrameWidthPx = (frameMeta.frame_width_mm) * ppm;
     const scale = desiredFrameWidthPx / nativeW;
 
     const anchorX = ((L.x + R.x)/2) * 0.85 + NB.x * 0.15;

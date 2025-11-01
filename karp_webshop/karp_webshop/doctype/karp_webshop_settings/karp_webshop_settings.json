@@ -9,7 +9,11 @@
   "b2b_loyalty_program",
   "enable_guest_checkout",
   "default_web_warehouse",
-  "vto_enabled"
+  "vto_enabled",
+  "adult_eg_default_width",
+  "adult_sg_default_width",
+  "kids_eg_default_width",
+  "kids_sg_default_width"
  ],
  "fields": [
   {
@@ -44,12 +48,36 @@
    "fieldname": "vto_enabled",
    "fieldtype": "Check",
    "label": "VTO Enabled"
+  },
+  {
+   "default": "150",
+   "fieldname": "adult_eg_default_width",
+   "fieldtype": "Data",
+   "label": "Adult EG Default Width"
+  },
+  {
+   "default": "155",
+   "fieldname": "adult_sg_default_width",
+   "fieldtype": "Data",
+   "label": "Adult SG Default Width"
+  },
+  {
+   "default": "135",
+   "fieldname": "kids_eg_default_width",
+   "fieldtype": "Data",
+   "label": "Kids EG Default Width"
+  },
+  {
+   "default": "140",
+   "fieldname": "kids_sg_default_width",
+   "fieldtype": "Data",
+   "label": "Kids SG Default Width"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-26 10:44:49.158920",
+ "modified": "2025-11-01 21:42:39.001754",
  "modified_by": "Administrator",
  "module": "Karp Webshop",
  "name": "Karp Webshop Settings",
