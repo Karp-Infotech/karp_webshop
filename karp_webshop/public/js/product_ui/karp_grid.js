@@ -44,10 +44,10 @@ class KarpProductGrid extends webshop.ProductGrid {
 
 			price_html += `
 				<span class="discounted-price text-red-600 font-semibold ml-2">
-					₹${ item.price_list_rate  }
+					₹${ discounted_price  }
 				</span>
 				<small class="striked-price">
-					<s>${ item.formatted_mrp || '' }</s>
+					<s>${ item.price_list_rate || '' }</s>
 				</small>
 				
 				<small class="ml-1 product-info-green">

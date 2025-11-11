@@ -10,31 +10,25 @@
 			{% set price_info = product_info.price %}
 
 			<div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
-				<!-- Final Price -->
-				{% if price_info.formatted_mrp %}
-					<span itemprop="lowPrice" content="{{ price_info.formatted_price_sales_uom }}">{{ price_info.formatted_price_sales_uom }}</span>
+
+				{% set single_discount = (doc.custom_single_discount or 0) | float %}
+				{% set base_price = (price_info.price_list_rate or 0) | float %}
+				{% if single_discount > 0 %}
+					{% set discounted_price = base_price * (1 - single_discount / 100) %}
+
+					<span class="discounted-price text-red-600 font-semibold ml-2">
+						{{ frappe.utils.fmt_money(discounted_price, currency=price_info.currency) }}
+					</span>
+					<small class="striked-price formatted-price">
+						<s>{{ frappe.utils.fmt_money(base_price, currency=price_info.currency) }}</s>
+					</small>
+					<small class="ml-1 product-info in-green">
+						({{ single_discount }}% OFF)
+					</small>
 				{% else %}
-					<span itemprop="highPrice" content="{{ price_info.formatted_price_sales_uom }}">{{ price_info.formatted_price_sales_uom }}</span>
+					<span>{{ price_info.formatted_price_sales_uom }}</span>
 				{% endif %}
 
-
-				<!-- Striked Price and Discount  -->
-				{% if price_info.formatted_mrp %}
-					<small itemprop="highPrice" class="formatted-price">
-						<s>{{ price_info.formatted_mrp }}</s>
-					</small>
-
-					<small class="ml-1 formatted-price in-green">
-						({{ price_info.get("formatted_discount_percent") or price_info.get("formatted_discount_rate")}} OFF)
-					</small>
-
-				{% endif %}
-
-				<!--  Not Needed Price per UOM 
-				<small class="formatted-price ml-2">
-					({{ price_info.formatted_price }} / {{ product_info.uom }})
-				</small>
-				-->
 			</div>
 		{% else %}
 			{{ _("UOM") }} : {{ product_info.uom }}
