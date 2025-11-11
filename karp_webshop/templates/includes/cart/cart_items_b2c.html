@@ -3,6 +3,7 @@
 {% macro item_subtotal(item) %}
 	<div>
 		{{ item.get_formatted('amount') }}
+		
 	</div>
 
 	{% if item.is_free_item %}
@@ -56,9 +57,25 @@
 
 		<td class="text-right" style="width: 20%;">
 			<!-- Subtotal column -->
-			{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
+			{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}		
 				<div class="text-right item-subtotal">
-					{{ item_subtotal(d) }}
+					{% if d.is_free_item %}
+						<div class="text-success mt-4">
+							<span class="free-tag">{{ _('FREE') }}</span>
+						</div>
+					{% elif d.amount|float > 0 %}
+						<span class="discounted-price text-red-600 font-semibold d-block">
+							{{ d.get_formatted('amount') }}
+						</span>
+						<!-- Show discounted price with strike-through -->
+						<small class="striked-price d-block">
+							<s>₹{{ frappe.utils.fmt_money(d.price_list_rate , 0) }}</s>
+						</small>
+						
+					{% else %}
+						<!-- Regular subtotal -->
+						{{ item_subtotal(d) }}
+					{% endif %}
 				</div>
 			{% endif %}
 

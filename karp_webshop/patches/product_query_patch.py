@@ -10,9 +10,9 @@ class PatchedProductQuery(_qmod.ProductQuery):
         # call original init
         super().__init__()
         # ensure custom_mrp and formatted_mrp are present
-        if "custom_mrp" not in self.fields:
-            self.fields.append("custom_mrp")
-
+        if "custom_single_discount" not in self.fields:
+            self.fields.append("custom_single_discount")
+			
 
 # Replace the original class reference with our patched class
 _qmod.ProductQuery = PatchedProductQuery

@@ -34,19 +34,30 @@ class KarpProductGrid extends webshop.ProductGrid {
 
 		let price_html = `
 			<div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
-				${ item.formatted_price || '' }
 		`;
 
-		if (item.custom_mrp) {
+		// If Single Discount is defined (e.g. 30)
+		if (item.custom_single_discount && parseFloat(item.custom_single_discount) > 0) {
+			const discount_percent = parseFloat(item.custom_single_discount);
+			const base_price = parseFloat(item.price_list_rate || 0);
+			const discounted_price = base_price * (1 - discount_percent / 100);
+
 			price_html += `
+				<span class="discounted-price text-red-600 font-semibold ml-2">
+					₹${ item.price_list_rate  }
+				</span>
 				<small class="striked-price">
-					<s>${ item.custom_mrp ? "₹" + item.custom_mrp : "" }</s>
+					<s>${ item.formatted_mrp || '' }</s>
 				</small>
-				<!-- <small class="ml-1 product-info-green">
-					${ item.discount } OFF
-				</small>-->
+				
+				<small class="ml-1 product-info-green">
+					(${ discount_percent }% OFF)
+				</small>
 			`;
+		} else {
+			price_html += `${ item.formatted_price || '' }`;
 		}
+		
 		price_html += `</div>`;
 		return price_html;
 	}
