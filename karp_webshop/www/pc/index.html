@@ -2,6 +2,34 @@
 
 <script defer src="/assets/karp_webshop/js/karp_shopping_cart.js"></script>
 
+<style>
+.vsp-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	background-color: #e6f9ee; /* light green background */
+	color: #0d6832; /* deep green text */
+	border: 1px solid #a8e6b0;
+	font-weight: 600;
+	font-size: 0.8rem;
+	padding: 2px 6px;
+	border-radius: 6px;
+	margin-top: 4px;
+}
+
+.vsp-icon {
+	color: #0d6832;
+	font-size: 0.9rem;
+	line-height: 1;
+}
+
+.vsp-text {
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+}
+</style>
+
+
 
 {% from "webshop/templates/includes/macros.html" import attribute_filter_section, field_filter_section, discount_range_filters %}
 {% extends "templates/web.html" %}
