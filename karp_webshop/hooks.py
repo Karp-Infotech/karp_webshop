@@ -316,7 +316,16 @@ before_app_request = [
 doc_events = {
     "Sales Order": {
         "on_update": "karp_webshop.karp_webshop.overrides.order_hooks.update_guest_customer_info",
-        
+        "before_save": [
+            "karp_webshop.karp_webshop.overrides.promotions.apply_tiered_discount",
+            "karp_webshop.karp_webshop.overrides.promotions.calculate_savings"
+        ]          
+    },
+    "Quotation": {
+        "before_save": [
+            "karp_webshop.karp_webshop.overrides.promotions.apply_tiered_discount",
+            "karp_webshop.karp_webshop.overrides.promotions.calculate_savings"
+        ]       
     }
 }
 

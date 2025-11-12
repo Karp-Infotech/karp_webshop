@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:tier_name",
+ "creation": "2025-11-11 19:35:52.915884",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "tier_name",
+  "min_total",
+  "max_total",
+  "discount_percent"
+ ],
+ "fields": [
+  {
+   "fieldname": "min_total",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Min Total",
+   "reqd": 1
+  },
+  {
+   "fieldname": "max_total",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Max Total",
+   "reqd": 1
+  },
+  {
+   "fieldname": "discount_percent",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Discount Percent",
+   "reqd": 1
+  },
+  {
+   "fieldname": "tier_name",
+   "fieldtype": "Data",
+   "label": "Tier Name",
+   "reqd": 1,
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-11-11 20:02:51.941598",
+ "modified_by": "Administrator",
+ "module": "Karp Webshop",
+ "name": "Promotion Tier",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "tier_name"
+}

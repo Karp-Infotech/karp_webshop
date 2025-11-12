@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2025-11-11 19:33:28.000915",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "included_brands",
+  "promo_tiers",
+  "apply_on_doctype"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "included_brands",
+   "fieldtype": "Table",
+   "label": "Included Brands",
+   "options": "Tier Promo Brand Inclusion"
+  },
+  {
+   "fieldname": "promo_tiers",
+   "fieldtype": "Table",
+   "label": "Promo Tiers",
+   "options": "Promotion Tier"
+  },
+  {
+   "fieldname": "apply_on_doctype",
+   "fieldtype": "Select",
+   "label": "Apply on Doctype",
+   "options": "Quotation\nSales Order\nBoth"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-11-11 19:58:25.294062",
+ "modified_by": "Administrator",
+ "module": "Karp Webshop",
+ "name": "Tiered Promotion Settings",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
