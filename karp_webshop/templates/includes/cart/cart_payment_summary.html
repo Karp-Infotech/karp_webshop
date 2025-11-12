@@ -19,12 +19,12 @@
 					<td class="bill-content net-total text-right">{{ doc.get_formatted("custom_total_item_price") }}</td>
 				</tr>
 				<tr>
-					<td class="bill-content net-total in-green">{{ _("Total Item Discount") }}</td>
-					<td class="bill-content net-total text-right in-green">-{{ doc.get_formatted("custom_total_item_discount") }}</td>
+					<td class="bill-content net-total">{{ _("Total Item Discount") }}</td>
+					<td class="bill-content net-total text-right">-{{ doc.get_formatted("custom_total_item_discount") }}</td>
 				</tr>
 				<tr>
-					<td class="bill-content net-total in-green">{{ _("Bonus Savings") }}</td>
-					<td class="bill-content net-total text-right in-green">-{{ doc.get_formatted("discount_amount") }}</td>
+					<td class="bill-content net-total">{{ _("Value Savings") }}</td>
+					<td class="bill-content net-total text-right">-{{ doc.get_formatted("discount_amount") }}</td>
 				</tr>
 				<tr>
 					<td class="bill-content net-total in-green">{{ _("Total Savings") }}</td>
