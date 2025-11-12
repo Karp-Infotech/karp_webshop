@@ -1,7 +1,32 @@
+<style>
+.value-savings-banner {
+	background: linear-gradient(90deg, #e6f9ee 0%, #d1f2d8 100%);
+	border: 1px solid #a8e6b0;
+	color: #0d6832;
+	font-weight: 500;
+	font-size: 0.95rem;
+	display: inline-block;
+	padding: 6px 10px;
+	border-radius: 8px;
+	animation: pulse-green 2s infinite;
+}
+.value-savings-text {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+@keyframes pulse-green {
+	0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.3); }
+	70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+	100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+</style>
+
 {% if shopping_cart and shopping_cart.cart_settings.enabled %}
 
 {% set cart_settings = shopping_cart.cart_settings %}
 {% set product_info = shopping_cart.product_info %}
+
 
 <div class="item-cart row mt-2" data-variant-item-code="{{ item_code }}">
 
@@ -29,6 +54,12 @@
 					<span>{{ price_info.formatted_price_sales_uom }}</span>
 				{% endif %}
 
+			</div>
+
+			<div class="value-savings-banner mt-2 p-2 rounded">
+				<span class="value-savings-text">
+					Eligible for <b>Value Savings Program</b>
+				</span>
 			</div>
 		{% else %}
 			{{ _("UOM") }} : {{ product_info.uom }}
