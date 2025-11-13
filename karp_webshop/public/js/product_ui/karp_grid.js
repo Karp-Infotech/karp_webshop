@@ -61,8 +61,7 @@ class KarpProductGrid extends webshop.ProductGrid {
 		price_html += `</div>`;
 		price_html += `
 			<div class="vsp-badge mt-1">
-				<span class="vsp-icon">✔</span>
-				<span class="vsp-text">VSP</span>
+				<span class="vsp-text">VSP Eligible</span>
 			</div>
 		`;
 
