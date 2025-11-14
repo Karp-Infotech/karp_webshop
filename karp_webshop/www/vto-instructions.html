@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtual Try-On Instructions</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      color: #222;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .age-group {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .age-button {
+      padding: 12px 18px;
+      border-radius: 6px;
+      border: 2px solid #007aff;
+      cursor: pointer;
+      font-size: 16px;
+      background: white;
+      color: #007aff;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .age-button.selected {
+      background: #007aff;
+      color: white;
+    }
+
+    ul {
+      text-align: left;
+      margin: 20px auto;
+      max-width: 300px;
+      font-size: 15px;
+      line-height: 22px;
+    }
+
+    .start-btn {
+      margin-top: 25px;
+      padding: 14px 30px;
+      background: #007aff;
+      border: none;
+      color: white;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 300px;
+      font-weight: 600;
+    }
+
+    .start-btn:disabled {
+      background: #afafaf;
+      cursor: not-allowed;
+    }
+  </style>
+
+</head>
+<body>
+
+  <div class="container">
+
+    <h1>AI Powered Virtual Try-On</h1>
+
+    <h2>Before You Start</h2>
+
+    <p>Select your age group to get the most accurate fit:</p>
+
+    <div class="age-group">
+      <button class="age-button" data-age="adult">14+</button>
+      <button class="age-button" data-age="10-13">10-13</button>
+      <button class="age-button" data-age="6-9">6-9</button>
+      <button class="age-button" data-age="2-5">2-5</button>
+    </div>
+
+    <h3>Follow these instructions:</h3>
+
+    <ul>
+      <li>Maintain approx <b>1.5 feet</b> distance from the camera.</li>
+      <li><b>Do not wear eyeglasses</b> during scanning.</li>
+      <li>Look straight at your <b>Phone or Computer</b>.</li>
+      <li>Provide access to your <b>Camera</b>.</li>
+    </ul>
+
+    <button id="startVTO" class="start-btn" disabled>Start Virtual Try-On</button>
+
+  </div>
+
+  <script>
+    // handle age selection
+    const ageButtons = document.querySelectorAll(".age-button");
+    const startBtn = document.getElementById("startVTO");
+    let selectedAge = null;
+
+    ageButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        ageButtons.forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+
+        selectedAge = btn.dataset.age;
+
+        // Enable start button only after age selection
+        startBtn.disabled = false;
+      });
+    });
+
+    // Continue to VTO
+    startBtn.addEventListener("click", () => {
+      const params = new URLSearchParams(window.location.search);
+      const ic = (params.get('ic') || '').trim();
+      if (!ic) return;  
+      // Pass the selected age to VTO page
+      window.location.href = "/vto.html?ag=" + selectedAge + "&ic=" + ic;
+    });
+  </script>
+
+</body>
+</html>

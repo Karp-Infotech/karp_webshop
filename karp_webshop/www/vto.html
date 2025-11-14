@@ -1,4 +1,36 @@
 {% set karp_webshop_settings = frappe.get_doc("Karp Webshop Settings") %}
+<style>
+  .age-group-box {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .age-btn {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+    background: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    min-width: 110px;
+    text-align: center;
+    transition: all 0.15s ease;
+    font-weight: 600;
+  }
+
+  .age-btn.selected {
+    border-color: #2563eb;
+    background: #e0ecff;
+    color: #1e3a8a;
+  }
+
+  #ageGroup {
+    display: none; /* Hidden but still used by JS */
+  }
+</style>
 
 <script>
   const KARP_VTO_SETTINGS = {
@@ -229,6 +261,11 @@
       <canvas id="overlay"></canvas>
     </div>
     <div id="fitFeedback"></div>
+     <div class="row vto-row">
+      <div class="vto-field">
+        <label for="pdInput" style="font-weight:600">Keep you eyes wide open for best fitting accuracy. Our AI reads IRIS</label>
+      </div>
+    </div>
     <div id="controls">
       <label style="margin-left:8px; font-weight: bold;">Align Vertical:
         <input id="offY" type="range" min="-200" max="200" value="0" step="1">
@@ -241,36 +278,17 @@
       <div id="status" style="font-weight: bold;">Status: <span id="statustxt">Initializing…</span></div>
     </div>
 
-    <div class="row vto-row">
-      <div class="vto-field">
-        <label for="pdInput" style="font-weight:600">Your PD (mm)</label>
-        <input id="pdInput" type="number" min="30" max="90" step="0.5" placeholder="e.g. 63">
-      </div>
+ 
 
-      <div class="vto-or">OR</div>
-
-      <div class="vto-field">
-        <label for="ageGroup" style="font-weight:600">Age group</label>
-        <select id="ageGroup">
-          <option value="auto"></option>
-          <option value="adult">Adult (14+)</option>
-          <option value="10-13">10–13</option>
-          <option value="6-9">6–9</option>
-          <option value="2-5">2–5</option>
-          <option value="<2">&lt;2</option>
-        </select>
-      </div>
-    </div>
-
-
-    <div class="row" style="margin-top:10px;">
+    <!--<div class="row" style="margin-top:10px;">
       <div style="display:flex;gap:8px;align-items:center;">
         <div>
           <label style="font-weight: bold;">PD Used for Fitting</label>
-          <input id="computedPD" type="number" readonly style="width:30px;">
+          <input id="computedPD" type="number" hidden  style="width:30px;">
         </div>
       </div>
-    </div>
+    </div>-->
+
 
     
     <div id="fitConfidence"></div>
@@ -291,8 +309,8 @@
   const offY = document.getElementById('offY');
   const offX = document.getElementById('offX');
   const ageGroupEl = document.getElementById('ageGroup');
-  const pdInput = document.getElementById('pdInput');
-  const computedPDEl = document.getElementById('computedPD');
+  //const pdInput = document.getElementById('pdInput');
+  //const computedPDEl = document.getElementById('computedPD');
   const fitEl = document.getElementById('fitFeedback');
   const confEl = document.getElementById('fitConfidence');
 
@@ -431,8 +449,11 @@
       pixelPD = Math.hypot(R.x - L.x, R.y - L.y);
     } catch(e){ return null; }
 
-    const typed = Number(pdInput.value);
-    const usedPD = (isFinite(typed) && typed > 0) ? typed : defaultPDForAgeGroup(ageGroupEl.value);
+    const params = new URLSearchParams(window.location.search);
+    const ag = (params.get('ag') || '').trim();
+
+   // const typed = Number(pdInput.value);
+    const usedPD =  defaultPDForAgeGroup(ag);
 
     if (!pixelPD || !usedPD) return null;
     return pixelPD / usedPD; // px per mm
@@ -445,7 +466,7 @@
   const fitRatioBuffer = new CircularBuffer(6);
 
   function updateFitFeedback(lm){
-    if (!lm){ fitEl.textContent=''; confEl.textContent=''; computedPDEl.value=''; return; }
+    if (!lm){ fitEl.textContent=''; confEl.textContent=''; return; }
 
     const ppmNow = computePPMFromPD(lm);
     const facePxNow = computeFacePxWidth(lm);
@@ -463,7 +484,7 @@
     fitRatioBuffer.push(fitRatio);
     const fitRatioSm = fitRatioBuffer.avg();
 
-    const t_small=1, t_slightSmall=0.98, t_slightLarge=1.03, t_large=1.15;
+    const t_small=1.05, t_slightSmall=1, t_slightLarge=1.03, t_large=1.12;
     let msg='', color='#111';
     if (fitRatioSm < t_small){ msg=`Too Small — This Frame will look small on your face`; color='#d9534f'; }
     else if (fitRatioSm <= t_large){ msg=`Good Fit — This Frame will fit good your face` ; color='#5cb85c'; }
@@ -474,12 +495,14 @@
 
     // show the PD source (entered or age default)
     try {
-      const typed = Number(pdInput.value);
-      const shown = (isFinite(typed) && typed>0) ? typed : defaultPDForAgeGroup(ageGroupEl.value);
-      computedPDEl.value = shown ? Number(shown.toFixed(1)) : '';
+      const params = new URLSearchParams(window.location.search);
+      const ag = (params.get('ag') || '').trim();
+      //const typed = Number(pdInput.value);
+      const shown = defaultPDForAgeGroup(ageGroupEl.value);
+      //computedPDEl.value = shown ? Number(shown.toFixed(1)) : '';
       confEl.textContent = '';
     } catch(e) {
-      computedPDEl.value = '';
+      //computedPDEl.value = '';
       confEl.textContent = '';
     }
   }
@@ -610,5 +633,19 @@
 
 })();
 </script>
+
+<script>
+  document.querySelectorAll(".age-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".age-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      document.getElementById("ageGroup").value = btn.dataset.value;
+    });
+  });
+
+  // Auto-select Adult on load
+  document.querySelector('.age-btn[data-value="adult"]').classList.add("selected");
+</script>
+
 </body>
 </html>
