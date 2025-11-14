@@ -63,6 +63,11 @@ class KarpProductGrid extends webshop.ProductGrid {
 			<div class="vsp-badge mt-1">
 				<span class="vsp-text">VSP Eligible</span>
 			</div>
+			<div class="try-on-btn" onclick="openVtoInstructions('${ item.item_code }')">
+				<svg class="tryon-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+					<path d="M17 10.5V7c0-.6-.4-1-1-1H4c-.6 0-1 .4-1 1v10c0 .6.4 1 1 1h12c.6 0 1-.4 1-1v-3.5l4 4v-11l-4 4z"/>
+				</svg> Try On
+			</div>
 		`;
 
 		return price_html;
@@ -90,6 +95,7 @@ class KarpProductGrid extends webshop.ProductGrid {
 						</div>
 					</a>
 				</div>
+				
 			`;
 		}
 	}
