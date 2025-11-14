@@ -68,9 +68,9 @@ def get_attachments(dt, dn):
 
 def create_user_msg(sales_order):
 	if is_direct_purchase(sales_order) or sales_order.custom_payment_ready:
-		return "Thankyou for shopping with us. Our expert will reach out for further procesing."
+		return "Thankyou for shopping with us. Our expert will reach out for further processing."
 	else:
-		return "Thankyou for shopping with us. Our expert will reach out for further procesing."
+		return "Thankyou for shopping with us. Our expert will reach out for further processing."
 	
 def is_direct_purchase(sales_order):
 	is_direct_purchase = True
