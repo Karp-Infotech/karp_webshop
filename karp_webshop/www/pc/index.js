@@ -216,6 +216,46 @@ class KarpProductView extends webshop.ProductView {
 		// change_route_with_filters() will set the history, set start to 0 (because from_filters=true) and call make(true)
 		this.change_route_with_filters();
     }
+
+	add_paging_section(settings) {
+		$(".product-paging-area").remove();
+
+		if (this.products) {
+			let paging_html = `
+				<div class="row product-paging-area mt-5">
+					<div class="col-3">
+					</div>
+					<div class="col-9 text-right">
+			`;
+			let query_params = frappe.utils.get_query_params();
+			let start = query_params.start ? cint(JSON.parse(query_params.start)) : 0;
+			let page_length = settings.products_per_page || 0;
+
+			let prev_disable = start > 0 ? "" : "disabled";
+			let next_disable = (this.product_count > page_length) ? "" : "disabled";
+
+			paging_html += `
+				<button class="plp-nav-btn plp-prev-btn btn-prev" 
+					data-start="${ start - page_length }"
+					${prev_disable}>
+					← Prev
+				</button>`;
+				
+
+			paging_html += `
+				<button class="plp-nav-btn plp-next-btn btn-next"
+					data-start="${ start + page_length }"
+					${next_disable}>
+					Next →
+				</button>
+			`;
+
+			paging_html += `</div></div>`;
+
+			$(".page_content").append(paging_html);
+			this.bind_paging_action();
+		}
+	}
   
 }
 
