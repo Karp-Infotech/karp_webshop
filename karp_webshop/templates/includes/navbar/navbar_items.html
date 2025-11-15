@@ -2,6 +2,16 @@
 
 {% block navbar_right_extension %}
 
+	{% if frappe.request.cookies.get("hse") == "true" %}
+		<li class="nav-item ms-2">
+			<a href="/home-service" 
+			class="btn btn-warning text-dark fw-bold px-3 py-1"
+			style="border-radius: 20px;">
+				🏠 Home Eye Testing
+			</a>
+		</li>
+	{% endif %}
+
 	{% if frappe.db.get_single_value("Webshop Settings", "enable_wishlist") %}
 		<li class="wishlist wishlist-icon hidden">
 			<a class="nav-link" href="/wishlist">
@@ -12,4 +22,5 @@
 			</a>
 		</li>
 	{% endif %}
+
 {% endblock %}

@@ -1,0 +1,91 @@
+{% extends "templates/web.html" %}
+
+{% block title %} Home Service Booking {% endblock %}
+
+{% block page_content %}
+<style>
+label.required:after {
+    content: " *";
+    color: red;
+}
+</style>
+
+<div class="container my-5">
+  <div class="row">
+
+    <!-- LEFT: FORM -->
+    <div class="col-md-6">
+      <h3>Home Service Booking</h3>
+      <div id="form-success" class="alert alert-success mt-3 d-none">
+        Thank you! Our representative will call you shortly.
+      </div>
+      <form id="hse-form">
+        <div class="mb-3">
+          <label class="required">Name</label>
+          <input type="text" class="form-control" name="full_name" required>
+        </div>
+        <div class="mb-3">
+          <label class="required">Mobile Number</label>
+          <input type="text" class="form-control" name="mobile_no" required>
+        </div>
+        <div class="mb-3">
+          <label>Email</label>
+          <input type="email" class="form-control" name="email">
+        </div>
+        <div class="mb-3">
+          <label class="required">Address</label>
+          <textarea class="form-control" rows="3" name="address" required></textarea>
+        </div>
+        <div class="mb-3">
+          <label>Notes</label>
+          <textarea class="form-control" rows="2" name="notes"></textarea>
+        </div>
+
+        <div class="d-flex justify-content-center mt-4">
+            <button class="btn btn-primary px-4">Submit</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- RIGHT: PROMO -->
+    <div class="col-md-6">
+        <h4>Klear Kut @ Home</h4>
+        <ul>
+          <li><b>Professional</b> Home Eye Checkup</li>
+          <li>Try wide collection of Frames at Your <b>Convenience</b></li>
+          <li><b>Expert</b> Lens Guidance</li>
+          <li><b>No</b> Obligation to Buy. Just pay Rs 99 for no purchase</li>
+        </ul>
+        <img src="https://www.klearkut.com/static/imgs/assets/hs/het.webp" class="img-fluid mt-3 rounded">
+    </div>
+
+  </div>
+</div>
+
+<script>
+document.getElementById("hse-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const data = {};
+    new FormData(this).forEach((value, key) => data[key] = value);
+
+    frappe.call({
+        method: "karp_webshop.karp_webshop.api.home_service.book_home_service",
+        args: { 
+                data: {
+                full_name: data.full_name,
+                mobile_no: data.mobile_no,
+                email: data.email,
+                address: data.address,
+                notes: data.notes
+            } 
+        },
+        callback: function() {
+            document.getElementById("form-success").classList.remove("d-none");
+            document.getElementById("hse-form").reset();
+        }
+    })
+});
+</script>
+
+{% endblock %}
