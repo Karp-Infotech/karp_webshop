@@ -24,29 +24,37 @@
 	<div class="row">
         <div class="product-carousel owl-carousel">
             {%- for index in ['1', '2', '3', '4', '5', '6', '7', '8'] -%}
-            {%- set item = values['wi_' + index] -%}
+                {%- set item = values['wi_' + index] -%}
                 {%- if item -%}
                     {%- set web_item = frappe.get_doc("Website Item", item) -%}
+                    {% set single_discount = (web_item.custom_single_discount or 0) | float %}
+                    {% set base_price = frappe.db.get_value("Item Price", {"item_code": web_item.item_code, "price_list": "Retail Selling", "selling": 1}, "price_list_rate") %}
+                    {% set discounted_price = 0 %}
+                    {%- if single_discount > 0 %}
+                        {% set discounted_price = base_price * (1 - single_discount / 100) %}
+                    {%- endif -%}
                     <div class="item">
                         <div class="product-card">
                             <a href="{{ web_item.route or '#' }}">
                                 <img src="{{ web_item.website_image }}" alt="{{ web_item.web_item_name }}" class="img-fluid">
                             </a>
                             <h5 class="product-name">{{ web_item.web_item_name }}</h5>
-                            {% set price = frappe.db.get_value("Item Price", {"item_code": web_item.item_code, "price_list": "Retail Selling", "selling": 1}, "price_list_rate") %}
-                            <p class="price">₹ {{ price }}
+                            {% if discounted_price > 0 %}
+                            <p class="price">₹ {{ discounted_price }}
                                  <!-- Striked Price and Discount  -->
-                            {% if web_item.custom_mrp %}
                                 <small itemprop="highPrice" class="formatted-price">
-                                    <s> ₹{{ web_item.custom_mrp }}</s>
+                                    <s> ₹{{ base_price }}</s>
                                 </small>
-                            {% endif %}
-                            </p>
-
-                           
+                            </p> 
+                            {%- endif -%}                          
+                             {% if discounted_price == 0 %}
+                            <p class="price">₹ {{ base_price }}
+                            </p> 
+                            {%- endif -%}      
                         </div>
                     </div>
-                {%- endif -%}
+
+                 {%- endif -%}
             {%- endfor -%}
         </div>   
 	</div>
