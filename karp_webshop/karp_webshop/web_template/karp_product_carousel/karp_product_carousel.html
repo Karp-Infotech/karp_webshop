@@ -31,7 +31,7 @@
                     {% set base_price = frappe.db.get_value("Item Price", {"item_code": web_item.item_code, "price_list": "Retail Selling", "selling": 1}, "price_list_rate") %}
                     {% set discounted_price = 0 %}
                     {%- if single_discount > 0 %}
-                        {% set discounted_price = base_price * (1 - single_discount / 100) %}
+                        {% set discounted_price = (base_price * (1 - single_discount / 100)) | int %}
                     {%- endif -%}
                     <div class="item">
                         <div class="product-card">

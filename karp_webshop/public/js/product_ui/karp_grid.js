@@ -40,7 +40,7 @@ class KarpProductGrid extends webshop.ProductGrid {
 		if (item.custom_single_discount && parseFloat(item.custom_single_discount) > 0) {
 			const discount_percent = parseFloat(item.custom_single_discount);
 			const base_price = parseFloat(item.price_list_rate || 0);
-			const discounted_price = base_price * (1 - discount_percent / 100);
+			const discounted_price = Math.floor(base_price * (1 - discount_percent / 100));
 
 			price_html += `
 				<span class="discounted-price text-red-600 font-semibold ml-2">
