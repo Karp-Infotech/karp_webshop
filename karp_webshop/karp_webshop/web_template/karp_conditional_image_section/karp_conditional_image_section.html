@@ -3,7 +3,8 @@
 {# --- Begin: Section Embed Web Template --- #}
 
 <!-- container must have an id so JS can show/hide it -->
-<div class="embed-section-wrapper" data-condition_api="{{ condition_api or '' }}" style="display:none;">
+ <section class="section section-padding-bottom embed-section-wrapper-section" data-condition_api="{{ condition_api or '' }}"  data-section-idx="2" data-section-template="Karp Conditional Image Section">
+  <div class="embed-section-wrapper">
   <div class="section-with-image {{ 'align-center' if align == 'Center' else '' }}">
 	<h2 class="section-title">{{ _(title) }}</h2>
 	{%- if subtitle -%}
@@ -23,10 +24,13 @@
 
 </div>
 
+</section>
+
+
 <script>
 frappe.ready(function() {
   // Prefer class-based wrappers (recommended). Fallback to attribute selector if needed.
-  let wrappers = Array.from(document.querySelectorAll('.embed-section-wrapper'));
+  let wrappers = Array.from(document.querySelectorAll('.embed-section-wrapper-section'));
 
   if (!wrappers.length) return;
 
