@@ -2,6 +2,39 @@
 {% set cart_settings = shopping_cart.cart_settings %}
 {% set product_info = shopping_cart.product_info %}
 {% set price_info = product_info.get('price') or {} %}
+{% set features_by_material = {
+	"TR 90": ["lightweight", "flexible", "impact_resistant", "hypoallergenic"],
+	"Acetate": ["plantbased", "hypoallergenic", "sturdy"],
+	"Metal": ["sturdy", "durable", "corrosion_resistant"],
+	"Titanium": ["lightweight","sturdy", "hypoallergenic", "durable", "corrosion_resistant"],
+	"Ultem": ["lightweight", "flexible", "heat_resistant", "durable"],
+	"TR + Acetate": ["lightweight", "flexible", "sturdy", "hypoallergenic", "impact_resistant"],
+    "TR + Titanium": ["lightweight", "flexible", "sturdy", "hypoallergenic", "durable", "corrosion_resistant", "impact_resistant"],
+    "PC": ["lightweight", "sturdy", "impact_resistant", "heat_resistant", "durable"]
+} %}
+
+{% set feature_labels = {
+    "lightweight": "Feather Light",
+    "flexible": "Flexible",
+    "impact_resistant": "Impact Resistant",
+    "hypoallergenic": "Hypoallergenic",
+    "plantbased": "Plant Based",
+    "sturdy": "Sturdy Build",
+    "water_resistant": "Water Resistant",
+    "durable": "Durable",
+    "heat_resistant": "Heat Resistant",
+	"corrosion_resistant": "Corrosion Resistant"
+} %}
+
+{# --- Include item_vto.html only if Karp Webshop Settings has VTO Enabled checked --- #}
+	{% set vto_enabled = False %}
+	{% if frappe.db.exists('Karp Webshop Settings') %}
+		{% set k_settings_doc = frappe.get_doc('Karp Webshop Settings') %}
+		{% if k_settings_doc %}
+			{% set vto_enabled = k_settings_doc.get('vto_enabled') or k_settings_doc.get('VTO Enabled') or False %}
+		{% endif %}
+	{% endif %}
+
 
 <div class="col-md-7 product-details {{ width_class }}">
 	<div class="d-flex">
@@ -32,22 +65,32 @@
 			{{ _("Size") }}: {{ _(doc.custom_frame_size) }}
 		</span>
 
-		<span class="product-item-code" itemprop="name">
-			{{ _("Model No") }}:
+		<span class="product-item-code product-item-group" itemprop="name">
+			{{ _("Model No") }}: {{ _(doc.item_code) }}
 		</span>
-		<span itemprop="name">{{ _(doc.item_code) }}</span>
+
+		<span class="product-item-code" itemprop="name">
+			{{ _("Material") }}: {{ _(doc.custom_frame_material) }}
+		</span>
 		
 	</p>
+	{% set material = doc.custom_frame_material or "" %}
+	{% set material_features = features_by_material.get(material, []) %}
 
-	{# --- Include item_vto.html only if Karp Webshop Settings has VTO Enabled checked --- #}
-	{% set vto_enabled = False %}
-	{% if frappe.db.exists('Karp Webshop Settings') %}
-		{% set settings_doc = frappe.get_doc('Karp Webshop Settings') %}
-		{% if settings_doc %}
-			{% set vto_enabled = settings_doc.get('vto_enabled') or settings_doc.get('VTO Enabled') or False %}
-		{% endif %}
+	{% if material_features %}
+	<div class="product-features mt-3 d-flex flex-wrap">
+		{% for feature in material_features %}
+			<div class="feature-icon text-center mr-3 mb-2">
+				<img src="{{ k_settings_doc.get('img_base_url') }}/icons/{{ feature }}.png" alt="{{ feature }}" class="feature-img">
+				<div class="feature-label small text-muted">
+					{{ feature_labels.get(feature, feature.replace("_", " ").title()) }}
+				</div>
+			</div>
+		{% endfor %}
+	</div>
 	{% endif %}
 
+	
 	
 
 	{% if vto_enabled and doc.custom_vto_enabled%}

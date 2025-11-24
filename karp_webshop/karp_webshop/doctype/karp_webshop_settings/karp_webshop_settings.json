@@ -13,7 +13,8 @@
   "adult_eg_default_width",
   "adult_sg_default_width",
   "kids_eg_default_width",
-  "kids_sg_default_width"
+  "kids_sg_default_width",
+  "img_base_url"
  ],
  "fields": [
   {
@@ -72,12 +73,17 @@
    "fieldname": "kids_sg_default_width",
    "fieldtype": "Data",
    "label": "Kids SG Default Width"
+  },
+  {
+   "fieldname": "img_base_url",
+   "fieldtype": "Data",
+   "label": "Img Base URL"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-01 21:42:39.001754",
+ "modified": "2025-11-24 15:32:49.567110",
  "modified_by": "Administrator",
  "module": "Karp Webshop",
  "name": "Karp Webshop Settings",
