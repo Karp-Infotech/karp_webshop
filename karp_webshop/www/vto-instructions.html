@@ -109,7 +109,7 @@
 
   </div>
 
-  <script>
+<script>
     // handle age selection
     const ageButtons = document.querySelectorAll(".age-button");
     const startBtn = document.getElementById("startVTO");
@@ -132,10 +132,18 @@
       const params = new URLSearchParams(window.location.search);
       const ic = (params.get('ic') || '').trim();
       if (!ic) return;  
+
+      // Tell parent that user is starting VTO
+      window.parent.postMessage({ type: 'vto-started' }, '*');
+
       // Pass the selected age to VTO page
-      window.location.href = "/vto?ag=" + selectedAge + "&ic=" + ic;
+      window.location.href = "vto?ag=" + selectedAge + "&ic=" + ic;
     });
+
+
   </script>
 
 </body>
+
+  
 </html>

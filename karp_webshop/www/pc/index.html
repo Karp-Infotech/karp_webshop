@@ -167,20 +167,36 @@
 </script>
 
 <script>
+
+let vtoStarted = false;
+
+// Listen to postMessage from iframe
+window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (data && data.type === 'vto-started') {
+        vtoStarted = true;
+    }
+});
 function openVtoInstructions(itemCode) {
     const url = `/vto-instructions?ic=${encodeURIComponent(itemCode)}`;
 
-    // If you're using ERPNext Webshop modal
     frappe.web_form_dialog = new frappe.ui.Dialog({
         title: "Virtual Try-On",
         size: "large"
     });
 
     frappe.web_form_dialog.$body.html(`
-        <iframe src="${url}"
-                style="width:100%; height:80vh; border:0;">
-        </iframe>
+        <iframe id="vtoFrame" src="${url}"
+                style="width:100%; height:80vh; border:0;"></iframe>
     `);
+
+    // ⭐ Only go back if VTO (camera) page was actually opened.
+    frappe.web_form_dialog.onhide = () => {
+         if (vtoStarted) {
+          history.back();
+          vtoStarted = false; // reset flag for next time
+      }
+    };
 
     frappe.web_form_dialog.show();
 }

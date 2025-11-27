@@ -46,7 +46,7 @@
 </style>
 
 <div class="vto-section text-center my-4">
-  <button class="btn btn-vto" id="tryOnBtn">
+  <button class="btn btn-vto" id="tryOnBtn" onclick="openVtoInstructions('{{ doc.item_code }}')">
     <i class="fa fa-camera"></i> Try On
   </button>
   <div class="vto-description mt-2">
@@ -55,40 +55,40 @@
 </div>
 
 
-<!-- VTO MODAL -->
-<div class="modal fade" id="vtoModal" tabindex="-1" aria-labelledby="vtoModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width:95%;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-0">
-        <iframe id="vtoIframe" src="" style="width:100%; height:80vh; border:none;"></iframe>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Bootstrap 5 JS bundle (includes Popper) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const tryBtn = document.getElementById('tryOnBtn');
-    const modalIframe = document.getElementById('vtoIframe');
 
-    tryBtn.addEventListener('click', function(){
-        // Set iframe source to your VTO HTML
-        modalIframe.src = '/vto-instructions?ic={{ doc.item_code }}';
-        // Show Bootstrap modal
-        var vtoModal = new bootstrap.Modal(document.getElementById('vtoModal'));
-        vtoModal.show();
-    });
+let vtoStarted = false;
 
-    // Optional: clear iframe on close to stop camera
-    const vtoModalEl = document.getElementById('vtoModal');
-    vtoModalEl.addEventListener('hidden.bs.modal', function () {
-        modalIframe.src = '';
-    });
+// Listen to postMessage from iframe
+window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (data && data.type === 'vto-started') {
+        vtoStarted = true;
+    }
 });
+
+function openVtoInstructions(itemCode) {
+    const url = `/vto-instructions?ic=${encodeURIComponent(itemCode)}`;
+
+    frappe.web_form_dialog = new frappe.ui.Dialog({
+        title: "Virtual Try-On",
+        size: "large"
+    });
+
+    frappe.web_form_dialog.$body.html(`
+        <iframe id="vtoFrame" src="${url}"
+                style="width:100%; height:80vh; border:0;"></iframe>
+    `);
+
+    // ⭐ Only go back if VTO (camera) page was actually opened.
+    frappe.web_form_dialog.onhide = () => {
+         if (vtoStarted) {
+          history.back();
+          vtoStarted = false; // reset flag for next time
+      }
+    };
+
+    frappe.web_form_dialog.show();
+}
+
 </script>
