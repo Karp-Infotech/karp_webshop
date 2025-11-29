@@ -1,6 +1,7 @@
 import frappe
 
 def apply_reward_points_multipler(doc, method):
+
     if not doc:
         return 0.0
     
@@ -18,8 +19,8 @@ def apply_reward_points_multipler(doc, method):
     # 1. Retrieve the loyalty point entry created by ERPNext
     lpe = frappe.get_all(
         "Loyalty Point Entry",
-        filters={"invoice": doc.name, "type": "Add"},
-        fields=["name", "points"]
+        filters={"invoice": doc.name, "invoice_type": "Sales Invoice"},
+        fields=["name", "loyalty_points"]
     )
 
     if not lpe:
@@ -28,14 +29,13 @@ def apply_reward_points_multipler(doc, method):
         return
 
     lpe_name = lpe[0].name
-    current_points = lpe[0].points
+    current_points = lpe[0].loyalty_points
 
     # 3. Apply multiplier
     updated_points = int(current_points * reward_point_multiplier)
 
     # 4. Update the Loyalty Point Entry
     lpe_doc = frappe.get_doc("Loyalty Point Entry", lpe_name)
-    lpe_doc.points = updated_points
-    lpe_doc.reason = f"Tiered Value Savings ({reward_point_multiplier}x multiplier)"
+    lpe_doc.loyalty_points = updated_points
     lpe_doc.save()
     frappe.db.commit()

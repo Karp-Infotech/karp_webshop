@@ -328,6 +328,9 @@ doc_events = {
             "karp_webshop.karp_webshop.overrides.promotions.calculate_savings",
             "karp_webshop.karp_webshop.overrides.promotions.calculate_reward_points"
         ]       
+    },
+    "Sales Invoice": {
+        "on_submit": "karp_webshop.karp_webshop.overrides.sales_invoice_hooks.apply_reward_points_multipler"
     }
 }
 
