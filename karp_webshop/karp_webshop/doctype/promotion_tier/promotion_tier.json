@@ -9,7 +9,8 @@
   "tier_name",
   "min_total",
   "max_total",
-  "discount_percent"
+  "discount_percent",
+  "reward_points_multiplier"
  ],
  "fields": [
   {
@@ -39,12 +40,18 @@
    "label": "Tier Name",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "reward_points_multiplier",
+   "fieldtype": "Float",
+   "label": "Reward Points Multiplier",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-11 20:02:51.941598",
+ "modified": "2025-11-28 21:55:06.590719",
  "modified_by": "Administrator",
  "module": "Karp Webshop",
  "name": "Promotion Tier",

@@ -104,3 +104,21 @@ def get_item_base_price(item_code, price_list, customer=None):
         "price_list_rate"
     )
     return rate or 0.0
+
+def calculate_reward_points(doc, method=None):
+    """Compute reward points for the given Quotation/Sales Order."""
+    if not doc:
+        return 0.0
+    
+    tp_settings = frappe.get_single("Tiered Promotion Settings")
+    if not tp_settings.enabled:
+        return
+
+    reward_point_multiplier = 1
+    if tp_settings.promo_tiers:
+        for tier in sorted(tp_settings.promo_tiers, key=lambda x: x.min_total, reverse=True):
+            if doc.grand_total >= tier.min_total and doc.grand_total <=tier.max_total:
+                reward_point_multiplier = tier.reward_points_multiplier
+                break
+    
+    doc.custom_reward_points = int(doc.grand_total * .01 * reward_point_multiplier)
