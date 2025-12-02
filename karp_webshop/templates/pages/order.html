@@ -7,6 +7,22 @@
 		padding: 6px 10px; /* optional, for nicer spacing inside the pill */
 		color: green;
 	}
+	.thankyou-banner {
+		background: linear-gradient(90deg, #e6f9ee 0%, #d1f2d8 100%);
+		border: 1px solid #a8e6b0;
+		color: #0d6832;
+		font-weight: 500;
+		font-size: 0.95rem;
+		display: inline-block;
+		padding: 6px 10px;
+		border-radius: 8px;
+		animation: pulse-green 2s infinite;
+	}
+	.thankyou-text {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
 	
 </style>
 {% extends "templates/web.html" %}
@@ -101,9 +117,13 @@
 		{% endif %}
 
 		{% if doc.doctype != "Sales Invoice" or doc.outstanding_amount > 0 %}
-			<span class="indicator-pill user-msg-indicator">
-				{{ user_msg }} 
-			</span>
+
+			<div class="thankyou-banner mt-2 p-2 rounded">
+				<span class="thankyou-text">
+					{{ user_msg }} 
+				</span>
+			</div>
+
 		{% endif %}
 
 		<div class="order-container mt-4">
