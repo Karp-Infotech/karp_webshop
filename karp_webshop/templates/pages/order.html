@@ -248,6 +248,52 @@
 			currency: '{{ doc.currency }}'
 		}
 	</script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+
+		document.addEventListener("DOMContentLoaded", function() {
+
+			const orderId = "{{ doc.name }}";
+
+			// Prevent duplicate purchase firing on page refresh
+			const lastFired = sessionStorage.getItem("ga4_purchase_fired");
+			if (lastFired === orderId) {
+				console.log("GA4 purchase already fired for this order:", orderId);
+				return;
+			}
+
+			// Construct items array
+			const items = [
+				{% for i in doc.items %}
+				{
+					item_id: "{{ i.item_code }}",
+					item_name: "{{ i.item_name | e }}",
+					quantity: {{ i.qty }},
+					price: {{ i.rate }},
+					item_category: "{{ i.item_group or '' }}",
+					item_brand: "{{ i.brand or '' }}"
+				},
+				{% endfor %}
+			];
+
+			// GA4 purchase event push
+			window.dataLayer.push({
+				event: "purchase",
+				ecommerce: {
+					transaction_id: orderId,
+					value: {{ doc.grand_total or 0 }},
+					currency: "{{ doc.currency }}",
+					coupon: "{{ doc.coupon_code or '' }}",
+					items: items
+				}
+			});
+
+			console.log("GA4 purchase fired for:", orderId, items);
+
+			// Mark this order as fired
+			sessionStorage.setItem("ga4_purchase_fired", orderId);
+		});
+	</script>
 {% endblock %}
 
 

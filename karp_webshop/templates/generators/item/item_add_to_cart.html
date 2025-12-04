@@ -165,6 +165,24 @@
 					$btn.prop('disabled', false);
 					if (r.message) {
 						$('.btn-add-to-cart, .btn-view-in-cart').toggleClass('hidden');
+						// ---------------------------------------------
+                        // GA4 Add to Cart Event
+                        // ---------------------------------------------
+                        dataLayer.push({
+                            event: "add_to_cart",
+                            ecommerce: {
+                                currency: "{{ price_info.currency }}",
+                                value: {{ (price_info.price_list_rate or 0) | float }},
+                                items: [{
+                                    item_id: "{{ item_code }}",
+                                    item_name: "{{ doc.item_name }}",
+                                    item_brand: "{{ doc.brand }}",
+                                    item_category: "{{ doc.item_group }}",
+                                    price: {{ (price_info.price_list_rate or 0) | float }},
+                                    quantity: 1
+                                }]
+                            }
+                        });
 					}
 				}
 			});

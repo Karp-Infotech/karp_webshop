@@ -118,3 +118,28 @@
 			webshop.webshop.wishlist.wishlist_action($btn);
 		});
 </script>
+
+<!-- GA4 View Item -->
+<script>
+window.dataLayer = window.dataLayer || [];
+
+window.dataLayer.push({
+  event: "view_item",
+  ecommerce: {
+    currency: "INR",
+    value: {{ price_info.price_list_rate or 0 }},
+    items: [
+      {
+        item_id: "{{ doc.item_code }}",
+        item_name: "{{ doc.web_item_name | e }}",
+        price: {{ price_info.price_list_rate or 0 }},
+        item_brand: "{{ doc.brand or '' }}",
+        item_category: "{{ doc.item_group or '' }}",
+        item_variant: "{{ doc.variant_of or '' }}",
+        frame_size: "{{ doc.custom_frame_size or '' }}",
+        frame_material: "{{ doc.custom_frame_material or '' }}"
+      }
+    ]
+  }
+});
+</script>

@@ -126,6 +126,42 @@
 </div>
 {% endif %}
 
+<script>
+window.dataLayer = window.dataLayer || [];
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    {% if doc.items %}
+    
+    const items = [
+        {% for item in doc.items %}
+        {
+            item_id: "{{ item.item_code }}",
+            item_name: "{{ item.item_name | e }}",
+            quantity: {{ item.qty }},
+            price: {{ item.rate }},
+            item_category: "{{ item.item_group or '' }}",
+            item_brand: "{{ item.brand or '' }}"
+        },
+        {% endfor %}
+    ];
+
+    window.dataLayer.push({
+        event: "begin_checkout",
+        ecommerce: {
+            currency: "INR",
+            value: {{ doc.grand_total or 0 }},
+            items: items
+        }
+    });
+
+    console.log("GA4 begin_checkout fired on cart load:", items);
+
+    {% endif %}
+});
+</script>
+
+
 {% endblock %}
 
 {% block base_scripts %}
@@ -134,3 +170,5 @@
 {{ include_script("controls.bundle.js") }}
 {{ include_script("dialog.bundle.js") }}
 {% endblock %}
+
+

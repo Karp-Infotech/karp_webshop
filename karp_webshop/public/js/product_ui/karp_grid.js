@@ -11,18 +11,22 @@ class KarpProductGrid extends webshop.ProductGrid {
 			`;
 		} else if (settings.enabled && (settings.allow_items_not_in_stock || item.in_stock)) {
 			return `
-				<div id="${ item.name }" class="btn
-					btn-sm btn-primary btn-add-to-cart-list
-					w-100 mt-2 "
-					data-item-code="${ item.item_code }" style="visibility: visible;">
+				<div id="${ item.name }"
+					class="btn btn-sm btn-primary btn-add-to-cart-list w-100 mt-2"
+					data-item-code="${ item.item_code }"
+					data-item-name="${ item.item_name || item.name }"
+					data-price="${ item.price || 0 }"
+					data-brand="${ item.brand || '' }"
+					data-category="${ item.item_group || '' }"
+					style="visibility: visible;">
+					
 					<span class="mr-2">
 						<svg class="icon icon-md">
 							<use href="#icon-assets"></use>
 						</svg>
 					</span>
-					${ settings.enable_checkout ? __('Add to Cart') :  __('Add to Quote') }
+					${ settings.enable_checkout ? __('Add to Cart') : __('Add to Quote') }
 				</div>
-
 				
 			`;
 		} else {

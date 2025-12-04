@@ -150,23 +150,44 @@ $.extend(shopping_cart, {
 	bind_add_to_cart_action() {
 		$('.page_content').on('click', '.btn-add-to-cart-list', (e) => {
 
-
 			const $btn = $(e.currentTarget);
-			//$btn.prop('disabled', true);
 
-			//$btn.addClass('hidden');
-			//$btn.closest('.cart-action-container').addClass('d-flex');
-			//$btn.parent().find('.go-to-cart').removeClass('hidden');
-			//$btn.parent().find('.go-to-cart-grid').removeClass('hidden');
 			$btn.parent().find('.cart-indicator').removeClass('hidden');
 
 			const item_code = $btn.data('item-code');
+			const item_name = $btn.data('item-name') || '';
+			const item_price = Number($btn.data('price')) || 0;
+			const item_brand = $btn.data('brand') || '';
+			const item_category = $btn.data('category') || '';
+
+			// GA4 Add-to-cart (PLP)
+			window.dataLayer = window.dataLayer || [];
+			window.dataLayer.push({
+				event: "add_to_cart",
+				ecommerce: {
+					currency: "INR",
+					value: item_price,
+					items: [
+						{
+							item_id: item_code,
+							item_name: item_name,
+							price: item_price,
+							quantity: 1,
+							item_brand: item_brand,
+							item_category: item_category
+						}
+					]
+				}
+			});
+
+			console.log("GA4 add_to_cart PLP fired:", item_code);
+
+			// Add to ERPNext cart
 			webshop.webshop.shopping_cart.add_item({
 				item_code,
 				qty: 1,
 				with_items: 0
 			});
-
 		});
 	}
 
