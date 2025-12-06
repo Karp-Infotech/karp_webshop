@@ -64,3 +64,18 @@ def book_home_service(data):
     return {"status": "success"}
 
 
+@frappe.whitelist(allow_guest=True)
+def is_customer_home_service_eligible():
+
+    if(frappe.session.user == "Guest") :
+        return
+    customer = get_session_customer()
+
+    if(customer) :
+        if(customer.custom_home_service_eligible):
+            return True
+        else:
+            return False
+        
+    # default
+    return 

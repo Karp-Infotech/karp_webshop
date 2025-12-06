@@ -119,6 +119,48 @@
 				{% endfor %}
 			</div>
 		{% endif %}
+		{% if frappe.request.cookies.get('hse') == "true" %}
+			<div class="home-service-badge mt-3 d-flex align-items-center">
+				<span style="font-size: 14px; font-weight: 600;">
+					🏠 Eligible for Home Try-On
+				</span>
+
+				<span class="ml-2" style="cursor: pointer;" data-toggle="modal" data-target="#homeTryOnModal">
+					<svg width="16" height="16" fill="#6c757d" viewBox="0 0 16 16">
+						<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 11.93A4.93 4.93 0 1 1 8 3.07a4.93 4.93 0 0 1 0 9.86zM7 5h2v2H7V5zm0 3h2v4H7V8z"/>
+					</svg>
+				</span>
+			</div>
+
+			<!-- Home Try-On Info Modal -->
+			<div class="modal fade" id="homeTryOnModal" tabindex="-1" role="dialog" aria-labelledby="homeTryOnModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 360px;">
+				<div class="modal-content" style="border-radius: 12px;">
+				
+				<div class="modal-header" style="border-bottom: none;">
+					<h6 class="modal-title" id="homeTryOnModalLabel" style="font-weight: 600;">
+					Home Try-On Available
+					</h6>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="outline: none;">
+					<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+
+				<div class="modal-body" style="font-size: 14px; color: #555; line-height: 1.5;">
+					Our optician will bring this frame to your home during your lens consultation or 
+					eye checkup — so you can try it before finalizing your Order. Completely risk-free.
+				</div>
+
+				<div class="modal-footer" style="border-top: none;">
+					<button type="button" class="btn btn-primary btn-sm" data-dismiss="modal" style="border-radius: 6px;">
+					Got it
+					</button>
+				</div>
+
+				</div>
+			</div>
+			</div>
+		{% endif %}	
 
 		<!-- Add to Cart / View in Cart, Contact Us -->
 		<div class="mt-6 mb-5">

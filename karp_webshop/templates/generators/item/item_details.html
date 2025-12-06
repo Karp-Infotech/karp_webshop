@@ -42,7 +42,8 @@
 		<div class="product-title col-11" itemprop="name">
 			{{ _(doc.web_item_name) }}
 		</div>
-
+		
+		
 		<!-- Wishlist -->
 		{% if cart_settings.enable_wishlist %}
 			<div class="like-action-item-fp like-action {{ 'like-action-wished' if wished else ''}} ml-2"
@@ -93,6 +94,8 @@
 		{% include "templates/generators/item/item_vto.html" %}
 	{% endif %}
 	
+
+
 	{% if has_variants %}
 		<!-- configure template -->
 		{% include "templates/generators/item/item_configure.html" %}
@@ -143,3 +146,4 @@ window.dataLayer.push({
   }
 });
 </script>
+
