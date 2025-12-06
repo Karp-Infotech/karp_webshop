@@ -1,26 +1,18 @@
 # my_app/api/signup.py
-import frappe
+import frappe 
 from frappe import _
-# import core sign_up BEFORE we override it via hooks
-try:
-    from frappe.core.doctype.user.user import sign_up as core_sign_up
-except Exception:
-    core_sign_up = None
+
+from frappe.website.utils import is_signup_disabled
+from frappe.utils import (
+	escape_html,
+)
 
 @frappe.whitelist(allow_guest=True)
-def karp_sign_up(email, full_name, redirect_to=None, **kwargs):
-    """
-    Wrapper around frappe.core.doctype.user.user.sign_up
-    - Calls the core sign_up to create the User (so existing behaviour + email flows remain)
-    - If guest_session_id cookie exists, find Customer and Contact and link the new User
-    """
-    # 1) call core sign_up (if available) so default flow is preserved
-    if core_sign_up:
-        # core_sign_up returns a message string (e.g. "Registration Details Emailed.")
-        core_result = core_sign_up(email=email, full_name=full_name, redirect_to=redirect_to)
-    else:
-        # fallback: create minimal User (be careful: this will not send welcome email etc)
-        frappe.throw(_("Core sign_up not available"))
+def karp_sign_up(email, full_name, password, redirect_to=None, **kwargs):
+
+  
+    core_result = sign_up(email=email, full_name=full_name, redirect_to=redirect_to, password=password)
+
 
     # 2) find the just-created user
     user_name = frappe.db.get_value("User", {"email": email}, "name")
@@ -57,3 +49,51 @@ def karp_sign_up(email, full_name, redirect_to=None, **kwargs):
         contact.save(ignore_permissions=True)
 
     return core_result
+
+
+def sign_up(email: str, full_name: str, redirect_to: str, password: str) -> tuple[int, str]:
+	if is_signup_disabled():
+		frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
+	print("Password :")
+	print(password)	
+
+	user = frappe.db.get("User", {"email": email})
+	if user:
+		if user.enabled:
+			return 0, _("Already Registered")
+		else:
+			return 0, _("Registered but disabled")
+	else:
+		if frappe.db.get_creation_count("User", 60) > 300:
+			frappe.respond_as_web_page(
+				_("Temporarily Disabled"),
+				_(
+					"Too many users signed up recently, so the registration is disabled. Please try back in an hour"
+				),
+				http_status_code=429,
+			)
+
+		from frappe.utils import random_string
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": escape_html(full_name),
+				"enabled": 1,
+				"new_password": password,
+				"user_type": "Website User",
+			}
+		)
+		user.flags.ignore_permissions = True
+		user.flags.ignore_password_policy = True
+		user.insert()
+
+		# set default signup role as per Portal Settings
+		default_role = frappe.db.get_single_value("Portal Settings", "default_role")
+		if default_role:
+			user.add_roles(default_role)
+
+		if redirect_to:
+			frappe.cache.hset("redirect_after_login", user.name, redirect_to)
+		return 1, _("Registration successful. You can now log in.")

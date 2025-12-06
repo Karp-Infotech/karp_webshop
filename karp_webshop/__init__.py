@@ -18,7 +18,8 @@ def _patch_webshop():
     try:
         from webshop.webshop.product_data_engine import query as original_query
 
-        # Overriding get_stock_availability method in webshop/webshop/webshop/product_data_engine/query.py so that stock availiblity is checked for the warehouse assigned to the customer.
+        # Overriding get_stock_availability method in webshop/webshop/webshop/product_data_engine/query.py so that stock availiblity is 
+        # checked for the warehouse assigned to the customer. If customer do not have it assined fallback on Karp Webshop Settings Default Warehouse.
         def get_stock_availability(self, item):
 		
             """Modify item object and add stock details."""
