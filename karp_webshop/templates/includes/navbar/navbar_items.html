@@ -2,15 +2,16 @@
 
 {% block navbar_right_extension %}
 
-	{% if frappe.request.cookies.get("hse") == "true" %}
-		<li class="nav-item ms-2">
-			<a href="/home-service" 
-			class="btn btn-warning text-dark fw-bold px-3 py-1"
-			style="border-radius: 20px;">
-				🏠 <b>Home Eye Testing</b>
-			</a>
-		</li>
-	{% endif %}
+
+	<!-- HTML (make sure it uses d-none initially) -->
+	<li class="nav-item ms-2 d-none" id="hse-nav-item">
+	<a href="/home-service"
+		class="btn btn-warning text-dark fw-bold px-3 py-1"
+		style="border-radius: 20px;">
+		🏠 <b>Home Eye Testing</b>
+	</a>
+	</li>
+
 
 	{% if frappe.db.get_single_value("Webshop Settings", "enable_wishlist") %}
 		<li class="wishlist wishlist-icon hidden">
@@ -22,5 +23,29 @@
 			</a>
 		</li>
 	{% endif %}
+
+	<!-- JS: remove d-none and add flex alignment -->
+	<script>
+		document.addEventListener("DOMContentLoaded", function () {
+		const hseCookie = document.cookie.split('; ')
+			.find(row => row.startsWith('hse='))
+			?.split('=')[1];
+
+		if (hseCookie === "true") {
+			const el = document.getElementById("hse-nav-item");
+			if (!el) return;
+
+			// Preferred: use Bootstrap classes so layout stays consistent
+			el.classList.remove('d-none');
+
+			// ensure it uses inline/flex layout like other nav-items
+			// adjust these classes if your navbar uses different layout styles
+			el.classList.add('d-flex', 'align-items-center');
+			
+			// OPTIONAL: if you previously set inline style display:block, remove it
+			el.style.display = '';
+		}
+		});
+	</script>
 
 {% endblock %}
