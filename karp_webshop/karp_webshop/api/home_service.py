@@ -79,3 +79,8 @@ def is_customer_home_service_eligible():
         
     # default
     return 
+
+
+@frappe.whitelist(allow_guest=True)
+def show_home_service_banner():
+    return {"show": True}
