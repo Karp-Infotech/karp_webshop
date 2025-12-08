@@ -278,7 +278,8 @@ website_route_rules = [
   {'from_route': '/pc/aviator', 'to_route': 'pc'},
   {'from_route': '/pc/screen', 'to_route': 'pc'},
   {'from_route': '/pc/screen-men', 'to_route': 'pc'},
-  {'from_route': '/pc/screen-women', 'to_route': 'pc'}
+  {'from_route': '/pc/screen-women', 'to_route': 'pc'},
+  {'from_route': '/pc/contact-lenses', 'to_route': 'pc'}
 ]
 
 app_include_js = [

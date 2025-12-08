@@ -12,6 +12,12 @@ class PatchedProductQuery(_qmod.ProductQuery):
         # ensure custom_mrp and formatted_mrp are present
         if "custom_single_discount" not in self.fields:
             self.fields.append("custom_single_discount")
+
+        if "custom_vto_enabled" not in self.fields:
+            self.fields.append("custom_vto_enabled")
+
+        if "custom_vsp_eligible" not in self.fields:
+            self.fields.append("custom_vsp_eligible")
 			
 
 # Replace the original class reference with our patched class
