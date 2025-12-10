@@ -44,27 +44,8 @@
 						{% include "templates/includes/cart/cart_items_b2c.html" %}
 					</tbody>
 
-					{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
-						<tfoot class="cart-tax-items">
-							{% include "templates/includes/cart/cart_items_total.html" %}
-						</tfoot>
-					{% endif %}
 				</table>
 
-				<div class="row mt-2">
-					<div class="col-9">
-						{% if cart_settings.enable_checkout %}
-							<a class="btn btn-primary-light font-md" href="/orders">
-								{{ _('Past Orders') }}
-							</a>
-						{% else %}
-							<a class="btn btn-primary-light font-md" href="/quotations">
-								{{ _('Past Quotes') }}
-							</a>
-						{% endif %}
-					</div>
-					
-				</div>
 			</div>
 
 			<!-- Terms and Conditions -->
