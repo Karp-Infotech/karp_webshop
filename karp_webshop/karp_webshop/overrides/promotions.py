@@ -45,7 +45,11 @@ def apply_tiered_discount(doc, method=None):
         doc.additional_discount_percentage = 0
         doc.discount_amount = 0
         frappe.logger().info("ℹ️ No tier met. Discount cleared.")
-    
+
+    ## Apply Manual Discount
+    if(doc.custom_manual_discount):
+        doc.discount_amount += doc.custom_manual_discount
+
     # 5️⃣ Trigger recalculation of totals
     doc.calculate_taxes_and_totals()
 
