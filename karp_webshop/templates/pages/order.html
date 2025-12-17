@@ -146,7 +146,21 @@
 				{% for d in doc.items %}
 				<div class="order-items row align-items-center">
 					<span class="order-item-name col-5 pr-0">
-						{{ item_name_and_description(d) }}
+						{% set website_item = frappe.db.get_value(
+							"Website Item",
+							{"item_code": d.item_code, "published": 1},
+							["name", "web_item_name", "route"],
+							as_dict=True
+						) %}
+
+						{% if website_item %}
+							<a href="/{{ website_item.route }}"
+							class="order-item-link">
+								{{ d.item_code }} : {{ website_item.web_item_name }} 
+							</a>
+						{% else %}
+							{{ d.item_code }}
+						{% endif %}
 					</span>
 
 					<span class="d-s-n col-3 pl-10">
