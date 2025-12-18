@@ -67,7 +67,7 @@ def calculate_savings(doc, method=None):
 
 def calculate_total_savings(doc,method=None):
     # Step 1: Item-level savings
-    total_item_savings = sum(flt(item.discount_amount or 0.0) for item in (doc.items or []))
+    total_item_savings = doc.custom_total_item_discount
 
     # Step 2: Order-level discount
     # ERPNext automatically sets `doc.discount_amount` for order-level discounts
@@ -85,28 +85,53 @@ def calculate_total_savings(doc,method=None):
 
 def calculate_total_item_discount(doc):
     # Step 1: Item-level savings
-    total_item_savings = sum(flt(item.discount_amount or 0.0) for item in (doc.items or []))
+    #total_item_savings = sum(flt(item.discount_amount or 0.0) for item in (doc.items or []))
+    total_item_savings = 0
+    for item in doc.items:
+        item_discount = get_item_discount(item, doc.selling_price_list)
+        total_item_savings += item_discount
     doc.custom_total_item_discount = total_item_savings
+
+def get_item_discount(item, price_list, customer=None):
+    """Fetch base rate (without any discounts) for a given item and price list."""
+
+    pl_rate = frappe.db.get_value(
+        "Item Price",
+        {"item_code": item.item_code, "price_list": price_list},
+        "price_list_rate"
+    )
+    item_discount = item.discount_amount
+
+    if(item.rate > pl_rate ):
+        item_discount = 0
+
+    return item_discount
+
 
 
 def calculate_total_base_item_price(doc):
 
     base_total = 0.0
     for item in doc.items:
-        base_rate = get_item_base_price(item.item_code, doc.selling_price_list)
+        base_rate = get_item_base_price(item, doc.selling_price_list)
         base_total += base_rate * item.qty
     doc.custom_total_item_price = base_total
     
 
 
-def get_item_base_price(item_code, price_list, customer=None):
+def get_item_base_price(item, price_list, customer=None):
     """Fetch base rate (without any discounts) for a given item and price list."""
 
-    rate = frappe.db.get_value(
+    pl_rate = frappe.db.get_value(
         "Item Price",
-        {"item_code": item_code, "price_list": price_list},
+        {"item_code": item.item_code, "price_list": price_list},
         "price_list_rate"
     )
+    rate = pl_rate
+
+    if(item.rate > pl_rate ):
+        rate = item.rate
+
     return rate or 0.0
 
 def calculate_reward_points(doc, method=None):

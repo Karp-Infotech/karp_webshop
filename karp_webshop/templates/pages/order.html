@@ -168,10 +168,12 @@
 					</span>
 					<span class="order-rate pl-4 col-2">
 						{{ d.get_formatted("rate") }}
-						<!-- Show discounted price with strike-through -->
-						<small class="striked-price d-block">
-							<s>₹{{ frappe.utils.fmt_money(d.price_list_rate , 0) }}</s>
-						</small>
+						{% if d.rate < d.price_list_rate %}
+							<!-- Show discounted price with strike-through -->
+							<small class="striked-price d-block">
+								<s>₹{{ frappe.utils.fmt_money(d.price_list_rate , 0) }}</s>
+							</small>
+						{% endif %}	
 					</span>
 					
 					<span class="col-2 text-right">
