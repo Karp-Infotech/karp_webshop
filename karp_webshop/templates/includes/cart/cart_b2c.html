@@ -86,10 +86,10 @@
 						<b>Note:</b> No payment required. Our expert will call you for lens consultation and order finalization.
 					</div>
 
-					{% if frappe.request.cookies.get('hse') == "true" %}
+					
 							<div class="home-service-badge d-flex align-items-center mt-3 mb-2" style="gap: 6px;">
 							<span style="font-size: 14px; font-weight: 600;">
-								🏠 You are eligible for Home Try-On
+								🏠 Try Frames at Home.
 							</span>
 
 							<span style="cursor: pointer;" data-toggle="modal" data-target="#homeTryOnModal">
@@ -116,6 +116,7 @@
 									<div class="modal-body" style="font-size: 14px; color: #555; line-height: 1.5;">
 										Our optician will bring frames to you during lens consultation or 
 										eye checkup — so you can try them before finalizing your order. Completely risk-free.
+										Location Restriction Apply.
 									</div>
 
 									<div class="modal-footer" style="border-top: none;">
@@ -127,7 +128,7 @@
 								</div>
 							</div>
 						</div>
-					{% endif %}
+				
 					<div class="place-order">
 						{% include "templates/includes/cart/place_order.html" %}
 					</div>

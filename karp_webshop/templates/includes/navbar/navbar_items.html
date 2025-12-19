@@ -4,7 +4,7 @@
 
 
 	<!-- HTML (make sure it uses d-none initially) -->
-	<li class="nav-item ms-2 d-none" id="hse-nav-item">
+	<li class="nav-item ms-2" id="hse-nav-item">
 	<a href="/home-service"
 		class="btn btn-warning text-dark fw-bold px-3 py-1"
 		style="border-radius: 20px;">
@@ -25,7 +25,7 @@
 	{% endif %}
 
 	<!-- JS: remove d-none and add flex alignment -->
-	<script>
+	<!--<script>
 		document.addEventListener("DOMContentLoaded", function () {
 		const hseCookie = document.cookie.split('; ')
 			.find(row => row.startsWith('hse='))
@@ -46,6 +46,6 @@
 			el.style.display = '';
 		}
 		});
-	</script>
+	</script>-->
 
 {% endblock %}
