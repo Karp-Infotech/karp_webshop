@@ -37,6 +37,14 @@
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
+   "fieldname": "slide_1_mobile_image",
+   "fieldtype": "Attach Image",
+   "label": "Mobile Image",
+   "reqd": 0
+  },
+  {
    "fieldname": "slide_1_title",
    "fieldtype": "Data",
    "label": "Title",
@@ -84,6 +92,14 @@
    "fieldname": "slide_2_image",
    "fieldtype": "Attach Image",
    "label": "Image ",
+   "reqd": 0
+  },
+  {
+   "__islocal": 1,
+   "__unsaved": 1,
+   "fieldname": "slide_2_mobile_image",
+   "fieldtype": "Attach Image",
+   "label": "Mobile Image",
    "reqd": 0
   },
   {
@@ -138,6 +154,14 @@
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
+   "fieldname": "slide_3_mobile_image",
+   "fieldtype": "Attach Image",
+   "label": "Mobile Image",
+   "reqd": 0
+  },
+  {
    "fieldname": "slide_3_title",
    "fieldtype": "Data",
    "label": "Title",
@@ -184,6 +208,14 @@
    "fieldname": "slide_4_image",
    "fieldtype": "Attach Image",
    "label": "Image",
+   "reqd": 0
+  },
+  {
+   "__islocal": 1,
+   "__unsaved": 1,
+   "fieldname": "slide_4_mobile_image",
+   "fieldtype": "Attach Image",
+   "label": "Mobile Image",
    "reqd": 0
   },
   {
@@ -236,6 +268,14 @@
    "reqd": 0
   },
   {
+   "__islocal": 1,
+   "__unsaved": 1,
+   "fieldname": "slide_5_mobile_image",
+   "fieldtype": "Attach Image",
+   "label": "Mobile Image",
+   "reqd": 0
+  },
+  {
    "fieldname": "slide_5_title",
    "fieldtype": "Data",
    "label": "Title",
@@ -273,8 +313,8 @@
    "reqd": 0
   }
  ],
- "idx": 67,
- "modified": "2025-02-21 11:50:00.144904",
+ "idx": 131,
+ "modified": "2025-12-22 14:45:37.011117",
  "modified_by": "Administrator",
  "module": "Karp Webshop",
  "name": "Hero Slider",

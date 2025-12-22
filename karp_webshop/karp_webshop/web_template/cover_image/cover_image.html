@@ -1,0 +1,13 @@
+ <picture>
+	<!-- Mobile image -->
+	{% if image_mobile %}
+	<source
+		media="(max-width: 768px)"
+		srcset="{{ image_mobile }}">
+	{% endif %}
+
+	<!-- Desktop fallback -->
+	<img
+		src="{{ url }}"
+		loading="eager">
+</picture>

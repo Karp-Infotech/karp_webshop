@@ -1,49 +1,4 @@
 <style>
-/* -----------------------------
-      HERO SLIDER STYLES
-------------------------------*/
-
-/* Ensure slide is positioned for controls */
-.hero-slide {
-    position: relative;
-    overflow: hidden;
-}
-
-/* Image default behavior */
-.hero-slide img {
-    width: 100%;
-    height: auto;            /* prevents cropping */
-    object-fit: contain;     /* prevents cropping */
-    object-position: center;
-}
-
-/* Mobile fixes */
-@media (max-width: 768px) {
-
-    /* Give slide natural height only from image */
-    .hero-slide {
-        min-height: unset !important;
-        height: auto !important;
-    }
-
-    .hero-slide img {
-        width: 100%;
-        height: auto !important;
-        object-fit: contain !important;  /* NO CROPPING */
-    }
-
-    .carousel-body {
-        padding: 0 1rem !important;
-    }
-
-    h1 {
-        font-size: 1.7rem !important;
-    }
-
-    p {
-        font-size: 1rem !important;
-    }
-}
 
 /* Controls vertically centered */
 .carousel-control-prev,
@@ -83,14 +38,29 @@
 
 
 
-<div class="carousel-item {{ 'active' if index=='1' else '' }} hero-slide" style="height: auto !important; min-height: auto !important; max-height: none !important;">
+<div class="carousel-item {{ 'active' if index=='1' else '' }} hero-slide" >
 
     {% if action %}
-    <a href="{{ action }}">
-        <img src="{{ image }}" alt="{{ title }}">
+        <a href="{{ action }}">
+    {% endif %}
+
+        <picture>
+            <!-- Mobile image -->
+            {% if values['slide_' + index + '_mobile_image'] %}
+            <source
+                media="(max-width: 768px)"
+                srcset="{{ values['slide_' + index + '_mobile_image'] }}">
+            {% endif %}
+
+            <!-- Desktop fallback -->
+            <img
+                src="{{ image }}"
+                alt="{{ title }}"
+                loading="eager">
+        </picture>
+
+    {% if action %}
     </a>
-    {% else %}
-    <img src="{{ image }}" alt="{{ title }}">
     {% endif %}
 
     {% if title or subtitle %}

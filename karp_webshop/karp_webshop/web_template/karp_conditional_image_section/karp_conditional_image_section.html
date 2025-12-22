@@ -13,11 +13,20 @@
 
 	{%- if image -%}
     <a href="{{ _(cta_url) }}">
-    {{ frappe.render_template('templates/includes/image_with_blur.html', {
-      "src": image,
-      "alt": image_description or title,
-      "class": "section-image"
-    }) }}
+     <picture>
+      <!-- Mobile image -->
+      {% if mobile_image %}
+      <source
+        media="(max-width: 768px)"
+        srcset="{{ mobile_image }}">
+      {% endif %}
+
+      <!-- Desktop fallback -->
+      <img
+        src="{{ image }}"
+        loading="eager">
+    </picture>
+
   </a>
 	{%- endif -%}
 </div>
