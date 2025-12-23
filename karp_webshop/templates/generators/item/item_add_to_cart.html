@@ -59,6 +59,39 @@
 		border: none;
 	}
 }
+
+/* Warranty / Returns Section */
+.pdp-warranty-box {
+	background: #f8fafc;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	padding: 12px 14px;
+	margin-top: 16px;
+}
+
+.pdp-warranty-item {
+	display: flex;
+	align-items: center;
+	font-size: 14px;
+	color: #374151;
+	margin-bottom: 6px;
+}
+
+.pdp-warranty-item:last-child {
+	margin-bottom: 0;
+}
+
+.pdp-warranty-item svg {
+	margin-right: 8px;
+	flex-shrink: 0;
+}
+
+.pdp-warranty-title {
+	font-weight: 600;
+	margin-bottom: 8px;
+	font-size: 14px;
+	color: #111827;
+}
 </style>
 
 {% if shopping_cart and shopping_cart.cart_settings.enabled %}
@@ -102,7 +135,7 @@
 			{% if doc.custom_vsp_eligible %}
 				<div class="value-savings-banner mt-2 p-2 rounded">
 					<span class="value-savings-text">
-						Eligible for <b>Value Savings Program</b>
+						Additional Savings With <b>VSP</b>
 					</span>
 				</div>
 			{% endif %}
@@ -110,26 +143,7 @@
 			{{ _("UOM") }} : {{ product_info.uom }}
 		{% endif %}
 
-		{% if cart_settings.show_stock_availability %}
-		<div class="mt-2">
-			{% if product_info.get("on_backorder") %}
-				<span class="no-stock out-of-stock" style="color: var(--primary-color);">
-					{{ _('Available on backorder') }}
-				</span>
-			{% elif product_info.in_stock == 0 %}
-				<span class="no-stock out-of-stock">
-					{{ _('Out of stock') }}
-				</span>
-			{% elif product_info.in_stock == 1 %}
-				<span class="in-green has-stock">
-					{{ _('In stock') }}
-					<!--{% if product_info.show_stock_qty and product_info.stock_qty %}
-						({{ product_info.stock_qty }})
-					{% endif %}-->
-				</span>
-			{% endif %}
-		</div>
-		{% endif %}
+		
 
 		<!-- Offers -->
 		{% if doc.offers %}
@@ -164,6 +178,41 @@
 				{% endfor %}
 			</div>
 		{% endif %}
+		
+		<!-- Warranty & Returns -->
+		<div class="pdp-warranty-box">
+			<div class="pdp-warranty-title">
+				Warranty & Returns
+			</div>
+
+			<div class="pdp-warranty-item">
+				<svg width="16" height="16" fill="#16a34a" viewBox="0 0 24 24">
+					<path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z"/>
+				</svg>
+				14 Days Adaption Warranty
+			</div>
+
+			<div class="pdp-warranty-item">
+				<svg width="16" height="16" fill="#16a34a" viewBox="0 0 24 24">
+					<path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z"/>
+				</svg>
+				14 Days Return / Exchange
+			</div>
+
+			<div class="pdp-warranty-item">
+				<svg width="16" height="16" fill="#16a34a" viewBox="0 0 24 24">
+					<path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z"/>
+				</svg>
+				1 Year Frame Polish Warranty
+			</div>
+
+			<div class="pdp-warranty-item">
+				<svg width="16" height="16" fill="#16a34a" viewBox="0 0 24 24">
+					<path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z"/>
+				</svg>
+				1 Year Lens Coating Peel Warranty
+			</div>
+		</div>
 		{% if doc.custom_hto_eligible %}
 			<!-- Home Try-On Badge (Hidden by default, shown by JS if hse=true) -->
 			<div id="hse-pdp-badge" class="home-service-badge mt-3">
@@ -207,6 +256,26 @@
 					</div>
 				</div>
 			</div>
+		{% endif %}
+		{% if cart_settings.show_stock_availability %}
+		<div class="mt-2">
+			{% if product_info.get("on_backorder") %}
+				<span class="no-stock out-of-stock" style="color: var(--primary-color);">
+					{{ _('Available on backorder') }}
+				</span>
+			{% elif product_info.in_stock == 0 %}
+				<span class="no-stock out-of-stock">
+					{{ _('Out of stock') }}
+				</span>
+			{% elif product_info.in_stock == 1 %}
+				<span class="in-green has-stock">
+					{{ _('In stock') }}
+					<!--{% if product_info.show_stock_qty and product_info.stock_qty %}
+						({{ product_info.stock_qty }})
+					{% endif %}-->
+				</span>
+			{% endif %}
+		</div>
 		{% endif %}
 
 		<!-- Add to Cart / View in Cart, Contact Us -->
