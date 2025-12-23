@@ -20,12 +20,56 @@
 	70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
 	100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
 }
+
+/* PDP CTA Layout Fix */
+.pdp-cta-container {
+	gap: 10px;
+}
+
+@media (max-width: 768px) {
+	.pdp-cta-container {
+		flex-direction: column;
+	}
+
+	.pdp-cta-container .btn {
+		width: 100%;
+	}
+}
+/* WhatsApp Button – Desktop (default) */
+.btn-whatsapp-order {
+	border: 1px solid #25D366;
+	color: #25D366;
+	font-weight: 600;
+	background: transparent;
+}
+
+/* Desktop hover */
+@media (hover: hover) and (pointer: fine) {
+	.btn-whatsapp-order:hover {
+		background: #25D366;
+		color: #fff;
+	}
+}
+
+/* Mobile – Solid Green (no hover) */
+@media (max-width: 768px) {
+	.btn-whatsapp-order {
+		background: #25D366 !important;
+		color: #fff !important;
+		border: none;
+	}
+}
 </style>
 
 {% if shopping_cart and shopping_cart.cart_settings.enabled %}
 
 {% set cart_settings = shopping_cart.cart_settings %}
 {% set product_info = shopping_cart.product_info %}
+{% set whatsapp_number = frappe.db.get_single_value(
+	"Karp Webshop Settings",
+	"whatsapp_no"
+) %}
+
 
 
 <div class="item-cart row mt-2" data-variant-item-code="{{ item_code }}">
@@ -167,7 +211,7 @@
 
 		<!-- Add to Cart / View in Cart, Contact Us -->
 		<div class="mt-6 mb-5">
-			<div class="mb-4 d-flex">
+			<div class="mb-4 d-flex flex-wrap pdp-cta-container">
 				<!-- Add to Cart -->
 				{% if product_info.price and (cart_settings.allow_items_not_in_stock or product_info.get("in_stock")) %}
 					<a href="/cart" class="btn btn-light btn-view-in-cart hidden mr-2 font-md"
@@ -184,6 +228,21 @@
 							</svg>
 						</span>
 						{{ _("Add to Cart") if cart_settings.enable_checkout else  _("Add to Quote") }}
+					</button>
+					<button
+						type="button"
+						class="btn btn-outline-success btn-whatsapp-order mt-2"
+						data-item-name="{{ doc.item_name }}"
+						data-item-code="{{ item_code }}"
+						data-item-price="{{ price_info.formatted_price_sales_uom if price_info else '' }}"
+						data-whatsapp="{{ whatsapp_number | replace('+','') }}"
+						>
+						<span class="mr-2">
+							<svg width="18" height="18" viewBox="0 0 32 32" fill="#25D366">
+							<path d="M16 0C7.164 0 0 7.164 0 16c0 2.82.734 5.465 2.02 7.77L0 32l8.438-1.969A15.93 15.93 0 0 0 16 32c8.836 0 16-7.164 16-16S24.836 0 16 0z"/>
+							</svg>
+						</span>
+						Order on WhatsApp
 					</button>
 				{% endif %}
 
@@ -264,6 +323,42 @@
 				}
 			})
 
+		});
+		// ---------------------------------------------
+		// Order on WhatsApp (PDP)
+		// ---------------------------------------------
+		$('.page_content').on('click', '.btn-whatsapp-order', function () {
+
+		const itemName = $(this).data('item-name');
+		const itemCode = $(this).data('item-code');
+		const price = $(this).data('item-price');
+		const productUrl = window.location.href;
+		const phone = $(this).data('whatsapp');
+		if (!phone) {
+			alert("WhatsApp number not configured.");
+			return;
+		}
+
+		let message =
+			`Hi, I want to order this product:%0A%0A` +
+			`Product: ${itemName}%0A` +
+			`Item Code: ${itemCode}%0A` +
+			(price ? `Price: ${price}%0A` : ``) +
+			`Link: ${productUrl}%0A%0A` +
+			`Please assist me.`;
+
+		const waUrl = `https://wa.me/${phone}?text=${message}`;
+
+		window.open(waUrl, "_blank");
+		
+
+		if (typeof dataLayer !== "undefined") {
+			dataLayer.push({
+			event: "whatsapp_pdp_click",
+			item_id: itemCode,
+			item_name: itemName
+			});
+		}
 		});
 	});
 
