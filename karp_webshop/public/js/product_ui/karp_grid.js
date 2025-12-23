@@ -91,37 +91,6 @@ class KarpProductGrid extends webshop.ProductGrid {
 						</span>
 					</span>
 				</div>
-				<!-- VSP Info Modal -->
-				<div class="modal fade" id="vspInfoModal" tabindex="-1" role="dialog" aria-labelledby="vspInfoModalLabel" aria-hidden="true">
-					<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 420px;">
-						<div class="modal-content" style="border-radius: 12px;">
-
-							<div class="modal-header" style="border-bottom: none;">
-								<h6 class="modal-title" id="vspInfoModalLabel" style="font-weight: 600;">
-									Value Savings Program (VSP)
-								</h6>
-								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-									<span aria-hidden="true">&times;</span>
-								</button>
-							</div>
-
-							<div class="modal-body text-center">
-								<img
-									src="https://www.klearkut.com/static/imgs/assets/VSP.webp"
-									alt="VSP Benefits"
-									style="width: 100%; border-radius: 8px;"
-								/>
-							</div>
-
-							<div class="modal-footer" style="border-top: none;">
-								<button type="button" class="btn btn-primary btn-sm" data-dismiss="modal">
-									Got it
-								</button>
-							</div>
-
-						</div>
-					</div>
-				</div>
 				`;
 		}
 
