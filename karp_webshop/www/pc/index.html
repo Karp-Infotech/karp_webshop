@@ -3,32 +3,31 @@
 <script defer src="/assets/karp_webshop/js/karp_shopping_cart.js"></script>
 
 <style>
-.vsp-badge {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	background-color: #e6f9ee; /* light green background */
-	color: #0d6832; /* deep green text */
-	border: 1px solid #a8e6b0;
-	font-weight: 600;
-	font-size: 0.8rem;
-	padding: 2px 6px;
-	border-radius: 6px;
-	margin-top: 4px;
-	display: flex;
-    justify-content: center;
-}
+  .value-savings-banner {
+    background: linear-gradient(90deg, #e6f9ee 0%, #d1f2d8 100%);
+    border: 1px solid #a8e6b0;
+    color: #0d6832;
+    font-weight: 500;
+    font-size: 0.95rem;
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 8px;
+    animation: pulse-green 2s infinite;
+    justify-content: center; 
+  }
+  .value-savings-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;           /* center text + icon */
+    text-align: center;
+    width: 100%;
+  }
+  @keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.3); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+  }
 
-.vsp-icon {
-	color: #0d6832;
-	font-size: 0.9rem;
-	line-height: 1;
-}
-
-.vsp-text {
-	text-transform: uppercase;
-	letter-spacing: 0.4px;
-}
 .try-on-btn {
     background: linear-gradient(135deg, #2563eb, #1d4ed8);
     color: #ffffff;
