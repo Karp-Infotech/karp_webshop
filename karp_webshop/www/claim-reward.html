@@ -1,0 +1,228 @@
+{% extends "templates/web.html" %}
+
+{% block title %} Claim Rewards {% endblock %}
+
+{% block page_content %}
+
+<!-- START: Leaflet Landing Page -->
+<div id="leaflet-landing">
+
+<style>
+#leaflet-landing {
+    background: #f7f9fc;
+    padding: 16px 0;
+}
+
+#leaflet-landing * {
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+#leaflet-landing .container {
+    max-width: 420px;
+    margin: auto;
+    padding: 16px;
+}
+
+#leaflet-landing .card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+}
+
+#leaflet-landing h1 {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+#leaflet-landing .subtext {
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+#leaflet-landing .benefits {
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+#leaflet-landing .benefits li {
+    list-style: none;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+#leaflet-landing .benefits li::before {
+    content: "✔";
+    color: #10b981;
+    margin-right: 8px;
+}
+
+#leaflet-landing .form-group {
+    margin-bottom: 14px;
+}
+
+#leaflet-landing label {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: block;
+}
+
+#leaflet-landing input {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+}
+
+#leaflet-landing input:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+#leaflet-landing .btn {
+    width: 100%;
+    padding: 14px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+#leaflet-landing .btn:hover {
+    background: #1d4ed8;
+}
+
+#leaflet-landing .note {
+    text-align: center;
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 10px;
+}
+
+#leaflet-landing .success {
+    display: none;
+    text-align: center;
+}
+</style>
+
+<div class="container">
+    <div class="card">
+
+        <!-- Lead Form -->
+        <div id="lead-section">
+            <h1>Claim Reward Points</h1>
+            <p class="subtext">Valid for In-Store, Home Service or Online</p>
+
+            <ul class="benefits">
+                <li>Eye Test & Consultation</li>
+                <li>Frames & Sunglasses</li>
+                <li>Contact Lenses</li>
+                <li>Home Service</li>
+            </ul>
+
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="tel" id="mobile" placeholder="Enter 10-digit mobile number" required>
+            </div>
+
+            <div class="form-group">
+                <label>Name (Optional)</label>
+                <input type="text" id="name" placeholder="Your name">
+            </div>
+
+            <button class="btn" onclick="submitLead()">Claim My Reward Points</button>
+            <p class="note">Reward points credited instantly.</p>
+            <p class="note">Redeemable on minimum order of Rs 2000.</p>
+        </div>
+
+        <!-- Success -->
+        <div id="success-section" class="success">
+            <h1 id="success-title"></h1>
+            <p id="success-message"></p>
+
+            <button class="btn" onclick="window.location.href='/book-eye-test'">
+                Book Home Service
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function submitLead() {
+    const mobile = document.getElementById('mobile').value.trim();
+    const name = document.getElementById('name').value.trim();
+
+    if (mobile.length !== 10) {
+        alert("Please enter a valid 10-digit mobile number");
+        return;
+    }
+
+    frappe.call({
+        method: "karp_webshop.karp_webshop.api.offer.claim_welcome_offer",
+        args: {
+            mobile: mobile,
+            name: name,
+            utm_source: "leaflet",
+            utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
+        },
+        callback: function(r) {
+            if (!r.message) {
+                alert("Something went wrong. Please try again.");
+                return;
+            }
+            
+            const points = r.message.points || 0;
+
+            // Fresh reward credited
+            if (r.message.status === "success") {
+                showSuccess(
+                    "🎉 Reward Points Claimed!",
+                    `${points} reward points have been added to your account.
+                    \n Visit store near you or shop online to claim the reward.`
+                );
+            }
+
+            // Reward already claimed earlier
+            else if (r.message.status === "exists") {
+                showSuccess(
+                    "ℹ️ Reward Already Claimed",
+                    "You already have these reward points in your account."
+                );
+            }
+
+            else {
+                alert("Something went wrong. Please try again.");
+            }
+        }
+    });
+
+    function showSuccess(title, message) {
+        document.getElementById('lead-section').style.display = "none";
+        document.getElementById('success-section').style.display = "block";
+
+        document.getElementById('success-title').innerText = title;
+        document.getElementById('success-message').innerText = message;
+        gtag('event', 'generate_lead', {
+            event_category: 'Leaflet',
+            event_label: 'Welcome Reward',
+            value: 500
+        });
+    }
+}
+</script>
+
+</div>
+<!-- END: Leaflet Landing Page -->
+
+
+{% endblock %}

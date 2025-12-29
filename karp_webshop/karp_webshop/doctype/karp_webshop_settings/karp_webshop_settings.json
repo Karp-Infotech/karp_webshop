@@ -15,7 +15,9 @@
   "kids_eg_default_width",
   "kids_sg_default_width",
   "img_base_url",
-  "whatsapp_no"
+  "whatsapp_no",
+  "welcome_reward_points",
+  "welcome_reward_validity"
  ],
  "fields": [
   {
@@ -84,12 +86,22 @@
    "fieldname": "whatsapp_no",
    "fieldtype": "Data",
    "label": "Whatsapp No"
+  },
+  {
+   "fieldname": "welcome_reward_points",
+   "fieldtype": "Data",
+   "label": "Welcome Reward Points"
+  },
+  {
+   "fieldname": "welcome_reward_validity",
+   "fieldtype": "Int",
+   "label": "Welcome Reward Validity"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-12-23 19:00:50.595531",
+ "modified": "2025-12-29 13:04:03.770877",
  "modified_by": "Administrator",
  "module": "Karp Webshop",
  "name": "Karp Webshop Settings",
