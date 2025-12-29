@@ -112,6 +112,33 @@
     display: none;
     text-align: center;
 }
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #1e88e5;
+    color: #fff;
+    border: none;
+}
+
+.btn-secondary {
+    background-color: #ffffff;
+    color: #1e88e5;
+    border: 2px solid #1e88e5;
+}
 </style>
 
 <div class="container">
@@ -149,9 +176,15 @@
             <h1 id="success-title"></h1>
             <p id="success-message"></p>
 
-            <button class="btn" onclick="window.location.href='/home-service'">
-                Book Home Service
-            </button>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="window.location.href='/home-service'">
+                    🏠 Book Home Eye Test
+                </button>
+
+                <button class="btn btn-secondary" onclick="window.location.href='https://www.klearkut.com'">
+                    🛒 Shop Online
+                </button>
+            </div>
         </div>
 
     </div>
