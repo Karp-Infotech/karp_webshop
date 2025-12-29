@@ -135,7 +135,7 @@
             </div>
 
             <div class="form-group">
-                <label>Name (Optional)</label>
+                <label>Name</label>
                 <input type="text" id="name" placeholder="Your name">
             </div>
 
@@ -188,8 +188,10 @@ function submitLead() {
                 showSuccess(
                     "🎉 Reward Points Claimed!",
                     `${points} reward points have been added to your account.
-                    \n Visit store near you or shop online to claim the reward.`
+                    \n Reward Points Expire in next 30 days.
+                    \n Visit store near you or shop online to redeem.`
                 );
+                fireGTMEvent(r);
             }
 
             // Reward already claimed earlier
@@ -198,6 +200,7 @@ function submitLead() {
                     "ℹ️ Reward Already Claimed",
                     "You already have these reward points in your account."
                 );
+                fireGTMEvent(r);
             }
 
             else {
@@ -206,17 +209,23 @@ function submitLead() {
         }
     });
 
+    function fireGTMEvent(r) {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            event: "welcome_reward_claimed",
+            campaign_source: "leaflet",
+            campaign_name: new URLSearchParams(window.location.search).get("utm_campaign"),
+            reward_points: r.message.points,
+            customer_status: r.message.status // success | exists
+        });
+    }
+
     function showSuccess(title, message) {
         document.getElementById('lead-section').style.display = "none";
         document.getElementById('success-section').style.display = "block";
 
         document.getElementById('success-title').innerText = title;
         document.getElementById('success-message').innerText = message;
-        gtag('event', 'generate_lead', {
-            event_category: 'Leaflet',
-            event_label: 'Welcome Reward',
-            value: 500
-        });
     }
 }
 </script>
