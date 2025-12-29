@@ -213,7 +213,7 @@ function submitLead() {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
             event: "welcome_reward_claimed",
-            campaign_source: "leaflet",
+            campaign_source: new URLSearchParams(window.location.search).get("utm_source"),
             campaign_name: new URLSearchParams(window.location.search).get("utm_campaign"),
             reward_points: r.message.points,
             customer_status: r.message.status // success | exists
