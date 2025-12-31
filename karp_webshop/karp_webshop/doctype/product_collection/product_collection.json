@@ -6,11 +6,27 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "general_section",
   "route",
   "title",
+  "cover_img",
+  "cover_img_mobile",
   "item_group",
   "frame_gender",
-  "field_filters"
+  "field_filters",
+  "seo_section",
+  "seo_title",
+  "meta_description",
+  "meta_keywords",
+  "canonical_url",
+  "robots_meta",
+  "column_break_cwju",
+  "h1_override",
+  "intro_html",
+  "footer_html",
+  "schema_json",
+  "allow_indexing",
+  "seo_priority"
  ],
  "fields": [
   {
@@ -44,11 +60,93 @@
    "fieldname": "field_filters",
    "fieldtype": "JSON",
    "label": "Field Filters"
+  },
+  {
+   "fieldname": "general_section",
+   "fieldtype": "Section Break",
+   "label": "General"
+  },
+  {
+   "fieldname": "seo_section",
+   "fieldtype": "Section Break",
+   "label": "SEO"
+  },
+  {
+   "fieldname": "seo_title",
+   "fieldtype": "Data",
+   "label": "SEO Title"
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Meta Description"
+  },
+  {
+   "fieldname": "meta_keywords",
+   "fieldtype": "Small Text",
+   "label": "Meta Keywords"
+  },
+  {
+   "fieldname": "canonical_url",
+   "fieldtype": "Data",
+   "label": "Canonical URL"
+  },
+  {
+   "default": "Index",
+   "fieldname": "robots_meta",
+   "fieldtype": "Select",
+   "label": "Robots Meta",
+   "options": "Index\nNo Index\nfollow"
+  },
+  {
+   "fieldname": "column_break_cwju",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "h1_override",
+   "fieldtype": "Data",
+   "label": "H1 Override"
+  },
+  {
+   "fieldname": "intro_html",
+   "fieldtype": "HTML",
+   "label": "Intro HTML"
+  },
+  {
+   "fieldname": "footer_html",
+   "fieldtype": "HTML",
+   "label": "Footer HTML"
+  },
+  {
+   "fieldname": "schema_json",
+   "fieldtype": "Code",
+   "label": "Schema JSON"
+  },
+  {
+   "default": "1",
+   "fieldname": "allow_indexing",
+   "fieldtype": "Check",
+   "label": "Allow Indexing"
+  },
+  {
+   "fieldname": "seo_priority",
+   "fieldtype": "Float",
+   "label": "SEO Priority"
+  },
+  {
+   "fieldname": "cover_img",
+   "fieldtype": "Attach Image",
+   "label": "Cover Img"
+  },
+  {
+   "fieldname": "cover_img_mobile",
+   "fieldtype": "Attach Image",
+   "label": "Cover Img Mobile"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-30 06:43:10.467272",
+ "modified": "2025-12-31 20:31:07.393676",
  "modified_by": "Administrator",
  "module": "Karp Webshop",
  "name": "Product Collection",

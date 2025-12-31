@@ -1,100 +1,83 @@
 <script defer src="/assets/karp_webshop/js/product_ui/karp_grid.js"></script>
 
-<script defer src="/assets/karp_webshop/js/karp_shopping_cart.js"></script>
-
-<style>
-  .value-savings-banner {
-    background: linear-gradient(90deg, #e6f9ee 0%, #d1f2d8 100%);
-    border: 1px solid #a8e6b0;
-    color: #0d6832;
-    font-weight: 500;
-    font-size: 0.95rem;
-    display: inline-block;
-    padding: 6px 10px;
-    border-radius: 8px;
-    animation: pulse-green 2s infinite;
-    justify-content: center; 
-  }
-  .value-savings-text {
-    display: flex;
-    align-items: center;
-    justify-content: center;           /* center text + icon */
-    text-align: center;
-    width: 100%;
-  }
-  @keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.3); }
-    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
-  }
-
-.try-on-btn {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    color: #ffffff;
-    font-weight: 600;
-    border-radius: 6px;
-    padding: 6px 10px;
-    border: none;
-    text-align: center;
-    display: block;
-    width: 50%;
-    margin: 8px auto 0 auto;   /* 🔥 centers the button */
-    transition: 0.25s ease;
-}
-
-.try-on-btn:hover {
-    background: linear-gradient(135deg, #1e40af, #1e3a8a);
-    transform: translateY(-1px);
-    box-shadow: 0 3px 12px rgba(30, 64, 175, 0.3);
-}
-
-.plp-nav-btn {
-    background: #000;                    /* Pure black */
-    color: #fff;                         /* White text */
-    font-weight: 600;
-    border-radius: 6px;
-    padding: 8px 14px;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    transition: 0.25s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-}
-
-.plp-nav-btn:hover {
-    background: #222;                    /* Slightly lighter black */
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-}
-
-.plp-prev-btn {
-    float: left;
-}
-
-.plp-next-btn {
-    float: right;
-}
-.plp-nav-btn:disabled {
-    background: #888 !important;  /* Greyed out */
-    color: #ddd !important;
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
-    opacity: 0.6;
-}
-</style>
-
-
+<link rel="stylesheet" type="text/css" href="/assets/karp_webshop/css/pc.css">
 
 {% from "webshop/templates/includes/macros.html" import attribute_filter_section, field_filter_section, discount_range_filters %}
 {% extends "templates/web.html" %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}
+  {{ pc.seo_title or title }}
+{% endblock %}
+{% block meta_block %}
+
+  {% set has_filters = frappe.form_dict and frappe.form_dict|length > 0 %}
+
+  <link rel="canonical" href="{{ pc.canonical_url or frappe.utils.get_url(pc.route) }}">
+
+  {% if pc.meta_description %}
+  <meta name="description" content="{{ pc.meta_description }}">
+  {% endif %}
+
+  {% if not pc.allow_indexing or has_filters %}
+  <meta name="robots" content="noindex, follow">
+  {% else %}
+  <meta name="robots" content="index, follow">
+  {% endif %}
+
+  {# Optional: OpenGraph / Twitter consistency #}
+  <meta property="og:title" content="{{ pc.seo_title or title }}">
+  {% if pc.meta_description %}
+  <meta property="og:description" content="{{ pc.meta_description }}">
+  {% endif %}
+  <meta property="og:url" content="{{ pc.canonical_url or frappe.utils.get_url(pc.route) }}">
+  <meta property="og:type" content="website">
+
+  {# Collection Schema (optional but recommended) #}
+  {% if pc.schema_json %}
+  <script type="application/ld+json">
+  {{ pc.schema_json | safe }}
+  </script>
+  {% endif %}
+{% endblock %}
+
 {% block header %}
-<div class="mb-6">{{ title }}</div>
-{% endblock header %}
+{% if pc.cover_img %}
+  {# Cover image shown, H1 kept for SEO but visually subtle #}
+  <h1 class="pc-title sr-only">
+    {{ pc.h1_override or pc.title or title }}
+  </h1>
+{% else %}
+  {# No cover image, show H1 normally #}
+  <h1 class="pc-title">
+    {{ pc.h1_override or pc.title or title }}
+  </h1>
+{% endif %}
+{% endblock %}
 
 {% block page_content %}
+{% if pc.cover_img %}
+<div class="collection-cover">
+  <picture>
+    {# Mobile image first (max-width rule) #}
+    {% if pc.cover_img_mobile %}
+    <source
+      srcset="{{ pc.cover_img_mobile }}"
+      media="(max-width: 767px)">
+    {% endif %}
+
+    {# Desktop fallback #}
+    <img
+      src="{{ pc.cover_img }}"
+      alt="{{ pc.seo_title or pc.title }}"
+      loading="lazy"
+      width="1600"
+      height="600"
+      decoding="async"
+    >
+  </picture>
+
+</div>
+{% endif %}
 <input type="hidden" id="pc_field_filters" value='{{ field_filter | tojson | safe }}'>
 <div class="row">
 

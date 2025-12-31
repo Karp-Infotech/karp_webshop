@@ -14,6 +14,7 @@ def get_context(context):
 		
 	context.title = pc_doc.title  
 	context.field_filter = pc_doc.field_filters
+	context.pc = pc_doc
 
 	# Add homepage as parent
 	context.body_class = "product-page"

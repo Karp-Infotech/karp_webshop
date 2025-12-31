@@ -251,6 +251,7 @@ website_route_rules = [
   {'from_route': '/pc/kids-eg', 'to_route': 'pc'},
   {'from_route': '/pc/women-sg', 'to_route': 'pc'},
   {'from_route': '/pc/sunglasses', 'to_route': 'pc'},
+  {'from_route': '/pc/eyeglasses', 'to_route': 'pc'},
   {'from_route': '/pc/men-sg', 'to_route': 'pc'},
   {'from_route': '/pc/kids-sg', 'to_route': 'pc'},
   {'from_route': '/pc/kids', 'to_route': 'pc'},
