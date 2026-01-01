@@ -1,9 +1,7 @@
-<script defer src="/assets/karp_webshop/js/product_ui/karp_grid.js"></script>
-
-<link rel="stylesheet" type="text/css" href="/assets/karp_webshop/css/pc.css">
 
 {% from "webshop/templates/includes/macros.html" import attribute_filter_section, field_filter_section, discount_range_filters %}
 {% extends "templates/web.html" %}
+
 
 {% block title %}
   {{ pc.seo_title or title }}
@@ -41,6 +39,8 @@
 {% endblock %}
 
 {% block header %}
+
+
 {% if pc.cover_img %}
   {# Cover image shown, H1 kept for SEO but visually subtle #}
   <h1 class="pc-title sr-only">
@@ -118,7 +118,7 @@
 		<div class="collapse d-md-block mr-4 filters-section" id="product-filters">
 			<div class="d-flex justify-content-between align-items-center mb-5 title-section">
 				<div class="mb-4 filters-title" > {{ _('Filters') }} </div>
-				<a class="mb-4 clear-filters" href='{{ frappe.request.url }}'>{{ _('Clear All') }}</a>
+				<a class="mb-4 clear-filters" href='{{ pc.route }}'>{{ _('Clear All') }}</a>
 			</div>
 			<!-- field filters -->
 			{% if field_filters %}
@@ -215,6 +215,9 @@ function openVtoInstructions(itemCode) {
 }
 </script>
 
+<script defer src="/assets/karp_webshop/js/product_ui/karp_grid.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/assets/karp_webshop/css/pc.css">
 
 {% endblock %}
 
