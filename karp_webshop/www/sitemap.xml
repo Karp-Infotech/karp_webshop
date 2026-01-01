@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://www.klearkut.com/</loc>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Product Collections / PLPs -->
+  <url>
+    <loc>https://www.klearkut.com/pc/eyeglasses</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/sunglasses</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/trendy</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/classic</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/professional</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/sports</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/clipons</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/foldables</loc>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Category Pages -->
+  <url>
+    <loc>https://www.klearkut.com/pc/women-eg</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/men-eg</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/kids-eg</loc>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.klearkut.com/pc/women-sg</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/men-sg</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/kids-sg</loc>
+    <priority>0.7</priority>
+  </url>
+
+ <!-- Shape-Specific PLPs -->
+  <url>
+    <loc>https://www.klearkut.com/pc/aviator</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/oval</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/clubmaster</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/cateye</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/penta</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/hexa</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/rhombus</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/rectangle</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/pc/round</loc>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Offers / Other pages -->
+  <url>
+    <loc>https://www.klearkut.com/offers</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.klearkut.com/contact-lenses</loc>
+    <priority>0.6</priority>
+  </url>
+
+</urlset>
